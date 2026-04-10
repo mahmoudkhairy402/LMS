@@ -1,0 +1,324 @@
+{
+  "info": {
+    "_postman_id": "7c2d7c1f-2d8b-4a8a-9a1a-2f7a8e2d1d01",
+    "name": "LMS Backend API",
+    "description": "Collection for the LMS backend API.\n\nHow to use:\n1. Import this collection and the matching environment file.\n2. Select the environment before sending requests.\n3. Register a user, verify the email, then login.\n4. The login request stores access_token automatically in the active environment.\n5. Use {{access_token}} for protected routes.\n\nDynamic variables used in this collection:\n- base_url: backend base URL\n- access_token: set automatically after login\n- refresh_token: optional placeholder for manual use\n- verification_token: can be set manually for testing verify-email\n- google_id_token: set manually when testing Google login",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.environment.get('access_token') || pm.collectionVariables.get('access_token');",
+          "const skipAuth = ['register', 'login', 'verify-email', 'google', 'health'];",
+          "const requestUrl = pm.request.url.toString().toLowerCase();",
+          "const shouldAttachAuth = token && !skipAuth.some((part) => requestUrl.includes(part));",
+          "if (shouldAttachAuth) {",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token}` });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const requestName = pm.info.requestName.toLowerCase();",
+          "let json = {};",
+          "try {",
+          "  json = pm.response.json();",
+          "} catch (error) {",
+          "  json = {};",
+          "}",
+          "if (requestName.includes('login') && json.accessToken) {",
+          "  pm.environment.set('access_token', json.accessToken);",
+          "  pm.collectionVariables.set('access_token', json.accessToken);",
+          "}",
+          "if (requestName.includes('google login') && json.accessToken) {",
+          "  pm.environment.set('access_token', json.accessToken);",
+          "  pm.collectionVariables.set('access_token', json.accessToken);",
+          "}",
+          "const cookies = pm.cookies.toObject();",
+          "if (cookies && cookies.refreshToken) {",
+          "  pm.environment.set('refresh_token_cookie', cookies.refreshToken);",
+          "  pm.collectionVariables.set('refresh_token_cookie', cookies.refreshToken);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mahmoud Khairy\",\n  \"email\": \"mahmoud@example.com\",\n  \"password\": \"12345678\",\n  \"role\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Create a new user account. This sends a verification email and does not log the user in yet."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully. Please verify your email.\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": null,\n    \"role\": \"student\",\n    \"isEmailVerified\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-email/{{verification_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-email", "{{verification_token}}"]
+            },
+            "description": "Verify the user email using the raw token sent in the verification email. Set verification_token manually when testing."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Email verified successfully. You can login now.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahmoud@example.com\",\n  \"password\": \"12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. This request stores access_token automatically in the active environment.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "exec": [
+                    "const json = pm.response.json();",
+                    "if (json && json.accessToken) {",
+                    "  pm.environment.set('access_token', json.accessToken);",
+                    "  pm.collectionVariables.set('access_token', json.accessToken);",
+                    "}",
+                    "const cookies = pm.cookies.toObject();",
+                    "if (cookies && cookies.refreshToken) {",
+                    "  pm.environment.set('refresh_token_cookie', cookies.refreshToken);",
+                    "  pm.collectionVariables.set('refresh_token_cookie', cookies.refreshToken);",
+                    "}",
+                    "pm.test('Login successful', function () {",
+                    "  pm.response.to.have.status(200);",
+                    "});"
+                  ],
+                  "type": "text/javascript"
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged in successfully\",\n  \"accessToken\": \"eyJhbGciOi...\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": null,\n    \"role\": \"student\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"{{google_id_token}}\",\n  \"role\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Send the Google idToken from the frontend Google Sign-In flow. This request also stores access_token automatically."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Google authentication successful\",\n  \"accessToken\": \"eyJhbGciOi...\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000002\",\n    \"name\": \"Google User\",\n    \"email\": \"google.user@gmail.com\",\n    \"avatar\": \"https://lh3.googleusercontent.com/...\",\n    \"role\": \"student\",\n    \"isEmailVerified\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Avatar",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"avatar\": \"https://example.com/new-avatar.png\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/avatar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "avatar"]
+            },
+            "description": "Update the avatar manually for the currently authenticated user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Avatar updated successfully\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": \"https://example.com/new-avatar.png\",\n    \"role\": \"student\",\n    \"isEmailVerified\": true\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get the current authenticated user."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"user\": {\n    \"_id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": \"https://example.com/new-avatar.png\",\n    \"role\": \"student\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refresh access token using the refreshToken cookie. Postman stores cookies automatically for the same domain."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Token refreshed successfully\",\n  \"accessToken\": \"eyJhbGciOi...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Clear the refresh token cookie and remove the stored refresh token from the database."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged out successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token_cookie",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verification_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_id_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
