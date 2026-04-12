@@ -37,7 +37,7 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "LMS backend is running from vercel",
+    message: "LMS backend is running from vercel(test auto deploy)",
   });
 });
 
