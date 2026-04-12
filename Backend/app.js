@@ -17,7 +17,7 @@ dotenv.config();
 const app = express();
 
 const corsOptions = {
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: process.env.CLIENT_URL || "http://localhost:8080",
   credentials: true,
 };
 
@@ -37,7 +37,7 @@ app.use(morgan("dev"));
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "LMS backend is running",
+    message: "LMS backend is running from vercel",
   });
 });
 
