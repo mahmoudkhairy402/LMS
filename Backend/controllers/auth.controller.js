@@ -6,6 +6,7 @@ const AppError = require("../utils/appError");
 const asyncHandler = require("../utils/asyncHandler");
 const sendEmail = require("../utils/sendEmail");
 const verifyGoogleIdToken = require("../utils/verifyGoogleIdToken");
+const verifyGoogleAccessToken = require("../utils/verifyGoogleAccessToken");
 
 function createAccessToken(userId, role) {
   return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
@@ -192,9 +193,17 @@ const updateAvatar = asyncHandler(async (req, res) => {
 });
 
 const googleAuth = asyncHandler(async (req, res) => {
-  const { idToken, role } = req.body;
+  const { idToken, accessToken: googleAccessToken, role } = req.body;
 
-  const googlePayload = await verifyGoogleIdToken(idToken);
+  let googlePayload;
+  if (idToken) {
+    googlePayload = await verifyGoogleIdToken(idToken);
+  } else if (googleAccessToken) {
+    googlePayload = await verifyGoogleAccessToken(googleAccessToken);
+  } else {
+    throw new AppError("Google token is required", 400);
+  }
+
   const googleEmail = googlePayload.email;
   const googleId = googlePayload.sub;
   const googleAvatar = googlePayload.picture || null;
@@ -247,7 +256,7 @@ const googleAuth = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Google authentication successful",
-    accessToken,
+    accessToken: newAccessToken,
     user: {
       id: user._id,
       name: user.name,

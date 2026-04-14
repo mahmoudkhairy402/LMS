@@ -1,0 +1,142 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap");
+@import "tailwindcss";
+
+:root {
+  /* Brand palette */
+  --primary-50: #f5ecff;
+  --primary-100: #ead8ff;
+  --primary-200: #d5b0ff;
+  --primary-300: #be85ff;
+  --primary-400: #a75cff;
+  --primary-500: #7c3aed;
+  --primary-600: #6929d3;
+  --primary-700: #5620ab;
+  --primary-800: #40197f;
+  --primary-900: #2a1154;
+
+  --secondary-50: #fff8e7;
+  --secondary-100: #ffeec2;
+  --secondary-200: #ffdf8a;
+  --secondary-300: #ffd054;
+  --secondary-400: #ffc62a;
+  --secondary-500: #f59e0b;
+  --secondary-600: #ce8206;
+  --secondary-700: #a76706;
+  --secondary-800: #7e4f09;
+  --secondary-900: #553508;
+
+  --tertiary-50: #ffffff;
+  --tertiary-100: #f8f8f8;
+  --tertiary-200: #f5f5f5;
+  --tertiary-300: #ececec;
+  --tertiary-400: #dedede;
+  --tertiary-500: #cccccc;
+  --tertiary-600: #b5b5b5;
+  --tertiary-700: #9c9c9c;
+  --tertiary-800: #747474;
+  --tertiary-900: #4d4d4d;
+
+  --neutral-50: #f7f7f8;
+  --neutral-100: #efeff1;
+  --neutral-200: #e2e3e7;
+  --neutral-300: #cfd1d8;
+  --neutral-400: #b6b9c3;
+  --neutral-500: #8f94a3;
+  --neutral-600: #6f7485;
+  --neutral-700: #525767;
+  --neutral-800: #353945;
+  --neutral-900: #151821;
+
+  /* Semantic tokens */
+  --background: #0f0f0f;
+  --surface: #17171a;
+  --surface-raised: #1e1f24;
+  --foreground: #f4f4f5;
+  --muted-foreground: #a8acb8;
+  --border: #2f3138;
+
+  --ring: var(--primary-500);
+  --brand: var(--primary-500);
+  --brand-contrast: #f7efff;
+  --accent: var(--secondary-500);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-brand: var(--brand);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+
+  --color-primary-50: var(--primary-50);
+  --color-primary-100: var(--primary-100);
+  --color-primary-200: var(--primary-200);
+  --color-primary-300: var(--primary-300);
+  --color-primary-400: var(--primary-400);
+  --color-primary-500: var(--primary-500);
+  --color-primary-600: var(--primary-600);
+  --color-primary-700: var(--primary-700);
+  --color-primary-800: var(--primary-800);
+  --color-primary-900: var(--primary-900);
+
+  --color-secondary-50: var(--secondary-50);
+  --color-secondary-100: var(--secondary-100);
+  --color-secondary-200: var(--secondary-200);
+  --color-secondary-300: var(--secondary-300);
+  --color-secondary-400: var(--secondary-400);
+  --color-secondary-500: var(--secondary-500);
+  --color-secondary-600: var(--secondary-600);
+  --color-secondary-700: var(--secondary-700);
+  --color-secondary-800: var(--secondary-800);
+  --color-secondary-900: var(--secondary-900);
+
+  --color-tertiary-50: var(--tertiary-50);
+  --color-tertiary-100: var(--tertiary-100);
+  --color-tertiary-200: var(--tertiary-200);
+  --color-tertiary-300: var(--tertiary-300);
+  --color-tertiary-400: var(--tertiary-400);
+  --color-tertiary-500: var(--tertiary-500);
+  --color-tertiary-600: var(--tertiary-600);
+  --color-tertiary-700: var(--tertiary-700);
+  --color-tertiary-800: var(--tertiary-800);
+  --color-tertiary-900: var(--tertiary-900);
+
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-900: var(--neutral-900);
+
+  --shadow-soft: 0 10px 30px rgb(0 0 0 / 0.25);
+  --shadow-glow: 0 0 0 1px rgb(124 58 237 / 0.25), 0 12px 32px rgb(124 58 237 / 0.3);
+  --font-sans: "Cairo", sans-serif;
+  --font-mono: "Cairo", sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f0f0f;
+    --foreground: #f4f4f5;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), sans-serif;
+}
