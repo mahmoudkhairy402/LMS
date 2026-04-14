@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -18,7 +19,11 @@ import {
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { loginUser } from "@/store/thunks/authThunks";
-import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
+
+const GoogleAuthButton = dynamic(
+  () => import("@/components/auth/GoogleAuthButton"),
+  { ssr: false },
+);
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),

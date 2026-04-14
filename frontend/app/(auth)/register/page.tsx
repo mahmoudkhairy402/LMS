@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -21,7 +22,11 @@ import {
 
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { registerUser } from "@/store/thunks/authThunks";
-import GoogleAuthButton from "@/components/auth/GoogleAuthButton";
+
+const GoogleAuthButton = dynamic(
+  () => import("@/components/auth/GoogleAuthButton"),
+  { ssr: false },
+);
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
