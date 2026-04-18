@@ -10,7 +10,7 @@ const verifyGoogleAccessToken = require("../utils/verifyGoogleAccessToken");
 
 function createAccessToken(userId, role) {
   return jwt.sign({ userId, role }, process.env.JWT_ACCESS_SECRET, {
-    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "15m",
+    expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || "1d",
   });
 }
 
@@ -35,6 +35,17 @@ function getApiBaseUrl() {
   return (
     process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 5000}`
   );
+}
+
+function toSafeUser(user) {
+  return {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    avatar: user.avatar,
+    role: user.role,
+    isEmailVerified: user.isEmailVerified,
+  };
 }
 
 async function sendVerificationEmail(email, token) {
@@ -65,9 +76,41 @@ const register = asyncHandler(async (req, res) => {
   const { name, email, password, role } = req.body;
 
   const existingUser = await User.findOne({ email });
-  if (existingUser) {
+
+  if (existingUser && existingUser.isEmailVerified) {
     throw new AppError("Email already exists", 409);
   }
+
+  // if (existingUser && !existingUser.isEmailVerified) {
+  //   const { rawToken, hashedToken, expiresAt } = createEmailVerificationToken();
+
+  //   existingUser.name = name;
+  //   if (!existingUser.googleId) {
+  //     existingUser.password = password;
+  //   }
+  //   if (role) {
+  //     existingUser.role = role;
+  //   }
+  //   existingUser.verificationToken = hashedToken;
+  //   existingUser.verificationTokenExpires = expiresAt;
+  //   await existingUser.save();
+
+  //   await sendVerificationEmail(existingUser.email, rawToken);
+
+  //   return res.status(200).json({
+  //     success: true,
+  //     message:
+  //       "Email is not verified yet. A new verification link has been sent.",
+  //     user: {
+  //       id: existingUser._id,
+  //       name: existingUser.name,
+  //       email: existingUser.email,
+  //       avatar: existingUser.avatar,
+  //       role: existingUser.role,
+  //       isEmailVerified: existingUser.isEmailVerified,
+  //     },
+  //   });
+  // }
 
   const { rawToken, hashedToken, expiresAt } = createEmailVerificationToken();
 
@@ -128,7 +171,9 @@ const verifyEmail = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select("+password +refreshToken");
+  const user = await User.findOne({ email }).select(
+    "+password +refreshToken +verificationToken +verificationTokenExpires",
+  );
   if (!user) {
     throw new AppError("Invalid email or password", 401);
   }
@@ -139,6 +184,28 @@ const login = asyncHandler(async (req, res) => {
   }
 
   if (!user.isEmailVerified) {
+    const now = new Date();
+    const tokenExpiredOrMissing =
+      !user.verificationToken ||
+      !user.verificationTokenExpires ||
+      user.verificationTokenExpires <= now;
+
+    if (tokenExpiredOrMissing) {
+      const { rawToken, hashedToken, expiresAt } =
+        createEmailVerificationToken();
+
+      user.verificationToken = hashedToken;
+      user.verificationTokenExpires = expiresAt;
+      await user.save();
+
+      await sendVerificationEmail(user.email, rawToken);
+
+      throw new AppError(
+        "Email is not verified. A new verification link has been sent to your email.",
+        403,
+      );
+    }
+
     throw new AppError("Please verify your email before logging in", 403);
   }
 
@@ -146,6 +213,8 @@ const login = asyncHandler(async (req, res) => {
   const refreshToken = createRefreshToken(user._id);
 
   user.refreshToken = refreshToken;
+  user.lastLoginAt = new Date();
+  user.lastSeenAt = new Date();
   await user.save();
 
   res.cookie("refreshToken", refreshToken, refreshCookieOptions());
@@ -154,18 +223,12 @@ const login = asyncHandler(async (req, res) => {
     success: true,
     message: "Logged in successfully",
     accessToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      role: user.role,
-    },
+    user: toSafeUser(user),
   });
 });
 
-const updateAvatar = asyncHandler(async (req, res) => {
-  const { avatar } = req.body;
+const updateProfile = asyncHandler(async (req, res) => {
+  const { name, avatar } = req.body;
 
   const user = await User.findById(req.user._id).select(
     "-password -refreshToken",
@@ -175,20 +238,46 @@ const updateAvatar = asyncHandler(async (req, res) => {
     throw new AppError("User not found", 404);
   }
 
-  user.avatar = avatar;
+  if (typeof name !== "undefined") {
+    user.name = name.trim();
+  }
+
+  if (typeof avatar !== "undefined") {
+    user.avatar = avatar;
+  }
+
   await user.save();
 
   return res.status(200).json({
     success: true,
-    message: "Avatar updated successfully",
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      role: user.role,
-      isEmailVerified: user.isEmailVerified,
-    },
+    message: "Profile updated successfully",
+    user: toSafeUser(user),
+  });
+});
+
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id).select("+password");
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch) {
+    throw new AppError("Current password is incorrect", 400);
+  }
+
+  if (currentPassword === newPassword) {
+    throw new AppError("New password must be different", 400);
+  }
+
+  user.password = newPassword;
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Password updated successfully",
   });
 });
 
@@ -256,15 +345,8 @@ const googleAuth = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
     message: "Google authentication successful",
-    accessToken: newAccessToken,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      avatar: user.avatar,
-      role: user.role,
-      isEmailVerified: user.isEmailVerified,
-    },
+    accessToken: accessToken,
+    user: toSafeUser(user),
   });
 });
 
@@ -325,7 +407,7 @@ const logout = asyncHandler(async (req, res) => {
 const me = asyncHandler(async (req, res) => {
   return res.status(200).json({
     success: true,
-    user: req.user,
+    user: toSafeUser(req.user),
   });
 });
 
@@ -333,7 +415,8 @@ module.exports = {
   register,
   verifyEmail,
   login,
-  updateAvatar,
+  updateProfile,
+  changePassword,
   googleAuth,
   refresh,
   logout,

@@ -9,6 +9,8 @@ const rateLimit = require("express-rate-limit");
 const connectDB = require("./config/db");
 const healthRoutes = require("./routes/health.route");
 const authRoutes = require("./routes/auth.route");
+const courseRoutes = require("./routes/course.route");
+const userRoutes = require("./routes/user.route");
 const notFound = require("./middlewares/notFound.middleware");
 const errorHandler = require("./middlewares/errorHandler.middleware");
 
@@ -44,6 +46,8 @@ app.get("/", (req, res) => {
 
 app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/courses", courseRoutes);
+app.use("/api/users", userRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

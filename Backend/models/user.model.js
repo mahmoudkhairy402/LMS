@@ -60,6 +60,42 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    isActive: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    deactivatedAt: {
+      type: Date,
+      default: null,
+      select: false,
+    },
+    deactivatedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+      select: false,
+    },
+    lastLoginAt: {
+      type: Date,
+      default: null,
+    },
+    lastSeenAt: {
+      type: Date,
+      default: null,
+    },
+    stats: {
+      enrolledCoursesCount: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+      createdCoursesCount: {
+        type: Number,
+        min: 0,
+        default: 0,
+      },
+    },
   },
   {
     timestamps: true,
@@ -83,6 +119,10 @@ userSchema.methods.comparePassword = function comparePassword(
 
   return bcrypt.compare(candidatePassword, this.password);
 };
+
+// Indexes for efficient querying and sorting
+userSchema.index({ role: 1, isActive: 1, createdAt: -1 });
+userSchema.index({ name: 1, email: 1 });
 
 const User = mongoose.model("User", userSchema);
 

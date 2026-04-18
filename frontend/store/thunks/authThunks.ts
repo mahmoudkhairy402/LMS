@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/lib/api";
 import type { AuthUser } from "@/store/slices/authSlice";
+import type { RootState } from "@/store";
 
 interface RegisterPayload {
   name: string;
@@ -153,11 +154,25 @@ export const logoutUser = createAsyncThunk<void>(
 );
 
 // Fetch current user
-export const fetchMe = createAsyncThunk<AuthUser>(
+export const fetchMe = createAsyncThunk<
+  AuthUser,
+  string | undefined,
+  { state: RootState; rejectValue: string }
+>(
   "auth/fetchMe",
-  async (_, { rejectWithValue }) => {
+  async (providedToken, { getState, rejectWithValue }) => {
     try {
-      const response = await api.get<MeResponse>("/api/auth/me");
+      const stateToken = getState().auth.accessToken;
+      const token = providedToken || stateToken;
+
+      const response = await api.get<MeResponse>("/api/auth/me", {
+        headers: token
+          ? {
+              Authorization: `Bearer ${token}`,
+            }
+          : undefined,
+      });
+
       return response.data.user;
     } catch (error: any) {
       return rejectWithValue(

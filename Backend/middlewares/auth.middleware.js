@@ -4,6 +4,12 @@ const User = require("../models/user.model");
 const AppError = require("../utils/appError");
 const asyncHandler = require("../utils/asyncHandler");
 
+const ROLES = Object.freeze({
+  STUDENT: "student",
+  INSTRUCTOR: "instructor",
+  ADMIN: "admin",
+});
+
 const protect = asyncHandler(async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
@@ -31,8 +37,14 @@ const protect = asyncHandler(async (req, res, next) => {
 });
 
 const authorize = (...roles) => {
+  const allowedRoles = roles.map((role) => String(role).toLowerCase());
+
   return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
+    if (!req.user) {
+      return next(new AppError("Unauthorized", 401));
+    }
+
+    if (!allowedRoles.includes(String(req.user.role).toLowerCase())) {
       return next(new AppError("Forbidden", 403));
     }
 
@@ -40,7 +52,27 @@ const authorize = (...roles) => {
   };
 };
 
+// Middleware: Check if user account is active (for write operations)
+const requireActiveAccount = (req, res, next) => {
+  if (!req.user) {
+    return next(new AppError("Unauthorized", 401));
+  }
+
+  if (req.user.isActive === false) {
+    return next(
+      new AppError(
+        "Your account is deactivated. Please contact support.",
+        403,
+      ),
+    );
+  }
+
+  return next();
+};
+
 module.exports = {
   protect,
   authorize,
+  requireActiveAccount,
+  ROLES,
 };

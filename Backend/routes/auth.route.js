@@ -4,7 +4,8 @@ const {
   register,
   verifyEmail,
   login,
-  updateAvatar,
+  updateProfile,
+  changePassword,
   googleAuth,
   refresh,
   logout,
@@ -15,9 +16,11 @@ const {
   registerSchema,
   loginSchema,
   googleAuthSchema,
-  updateAvatarSchema,
+  updateProfileSchema,
+
+  changePasswordSchema,
 } = require("../validators/auth.validator");
-const { protect } = require("../middlewares/auth.middleware");
+const { protect, authorize, ROLES } = require("../middlewares/auth.middleware");
 
 const router = express.Router();
 
@@ -25,9 +28,24 @@ router.post("/register", validate(registerSchema), register);
 router.get("/verify-email/:token", verifyEmail);
 router.post("/login", validate(loginSchema), login);
 router.post("/google", validate(googleAuthSchema), googleAuth);
-router.put("/avatar", protect, validate(updateAvatarSchema), updateAvatar);
+router.put("/profile", protect, validate(updateProfileSchema), updateProfile);
+router.put(
+  "/password",
+  protect,
+  validate(changePasswordSchema),
+  changePassword,
+);
 router.post("/refresh", refresh);
 router.post("/logout", logout);
 router.get("/me", protect, me);
+
+// Role-based authorization examples
+// router.get("/admin/me", protect, authorize(ROLES.ADMIN), me);
+// router.get(
+//   "/instructor/me",
+//   protect,
+//   authorize(ROLES.INSTRUCTOR, ROLES.ADMIN),
+//   me,
+// );
 
 module.exports = router;
