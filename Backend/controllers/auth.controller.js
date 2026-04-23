@@ -218,6 +218,7 @@ const login = asyncHandler(async (req, res) => {
   await user.save();
 
   res.cookie("refreshToken", refreshToken, refreshCookieOptions());
+  res.cookie("accessToken", accessToken, refreshCookieOptions());
 
   return res.status(200).json({
     success: true,
@@ -341,6 +342,7 @@ const googleAuth = asyncHandler(async (req, res) => {
   await user.save();
 
   res.cookie("refreshToken", refreshToken, refreshCookieOptions());
+  res.cookie("accessToken", accessToken, refreshCookieOptions());
 
   return res.status(200).json({
     success: true,
@@ -397,6 +399,7 @@ const logout = asyncHandler(async (req, res) => {
   }
 
   res.clearCookie("refreshToken", refreshCookieOptions());
+  res.clearCookie("accessToken", refreshCookieOptions());
 
   return res.status(200).json({
     success: true,
