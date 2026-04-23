@@ -96,7 +96,7 @@ router.patch(
   updateMyProgress,
 );
 
-router.get("/:id", protect, getCourseById);
+router.get("/:id", getCourseById);
 
 router.patch(
   "/:id/publish",
