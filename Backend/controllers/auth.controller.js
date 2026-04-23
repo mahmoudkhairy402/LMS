@@ -377,7 +377,7 @@ const refresh = asyncHandler(async (req, res) => {
   await user.save();
 
   res.cookie("refreshToken", newRefreshToken, refreshCookieOptions());
-
+  res.cookie("accessToken", accessToken, refreshCookieOptions());
   return res.status(200).json({
     success: true,
     message: "Token refreshed successfully",
