@@ -66,8 +66,10 @@ function refreshCookieOptions() {
   const isProduction = process.env.NODE_ENV === "production";
   return {
     httpOnly: true,
-    secure: false,
-    sameSite: "none",
+    // In production, cookies must be secure. In development (HTTP), they cannot be.
+    secure: isProduction,
+    // 'Lax' is the standard for development. 'None' is required for cross-site production.
+    sameSite: isProduction ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
   };
 }
