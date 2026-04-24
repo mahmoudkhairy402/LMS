@@ -73,7 +73,7 @@ const getCourses = asyncHandler(async (req, res) => {
   const [courses, total] = await Promise.all([
     Course.find(filter)
       .select(COURSE_METADATA_SELECT)
-      .populate("instructor", "name email avatar")
+      .populate("instructor", "name email avatar role stats")
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit),
@@ -95,7 +95,7 @@ const getMyCourses = asyncHandler(async (req, res) => {
     req.user.role === ROLES.ADMIN ? {} : { instructor: req.user._id };
 
   const courses = await Course.find(filter)
-    .populate("instructor", "name email avatar")
+    .populate("instructor", "name email avatar role stats")
     .sort({ createdAt: -1 });
 
   return res.status(200).json({
@@ -110,7 +110,7 @@ const getCourseById = asyncHandler(async (req, res) => {
 
   const course = await Course.findById(id)
     .select(COURSE_METADATA_SELECT)
-    .populate("instructor", "name email avatar role");
+    .populate("instructor", "name email avatar role stats");
 
   if (!course) {
     throw new AppError("Course not found", 404);
