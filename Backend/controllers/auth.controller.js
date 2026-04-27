@@ -368,10 +368,16 @@ const refresh = asyncHandler(async (req, res) => {
   }
 
   const user = await User.findById(decoded.userId).select("+refreshToken");
-  if (!user || !user.refreshToken || user.refreshToken !== cookieToken) {
-    throw new AppError("Refresh token is invalid", 401);
+  if (!user) {
+    throw new AppError("user not found", 404)
   }
 
+  if (!user.refreshToken) {
+    throw new AppError("user dont have refresh token", 400)
+  }
+  if (user.refreshToken !== cookieToken) {
+    throw new AppError("user have different refresh token", 400)
+  }
   const accessToken = createAccessToken(user._id, user.role);
   const newRefreshToken = createRefreshToken(user._id);
 
