@@ -13,7 +13,7 @@ export default function AuthLayout({
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-neutral-900">
       {/* Gradient background */}
-      <div className="absolute inset-0 bg-linear-to-br from-primary-900/20 via-neutral-900 to-neutral-900" />
+      <div className="absolute inset-0 bg-background" />
 
       {/* Decorative elements */}
       <div className="absolute top-0 right-0 h-96 w-96 bg-primary-500/10 rounded-full blur-3xl" />

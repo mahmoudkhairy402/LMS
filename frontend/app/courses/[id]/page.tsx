@@ -1,0 +1,207 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, BadgeCheck, BookOpen, Clock3, Star, Users } from "lucide-react";
+import api from "@/lib/api";
+import type { CourseResponse } from "@/types/course";
+
+function formatPrice(price?: number) {
+  if (typeof price !== "number") return "Free";
+  return price === 0 ? "Free" : `$${price.toFixed(2)}`;
+}
+
+function formatDuration(minutes?: number) {
+  if (!minutes) return "Self-paced";
+  if (minutes < 60) return `${minutes} mins`;
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+}
+
+export default async function CourseDetailsPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  try {
+    const response = await api.get<CourseResponse>(`/api/courses/${id}`);
+    const course = response.data.course;
+
+    if (!course) {
+      notFound();
+    }
+
+    return (
+      <main className="min-h-screen bg-background px-6 py-8 text-foreground md:px-8">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-6 border-2 border-border bg-surface/90 p-4 shadow-(--shadow-soft)">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition hover:border-primary-500/70"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Back home
+              </Link>
+
+              <div className="flex items-center gap-3">
+                <Link
+                  href={`/login?redirect=/courses/${id}`}
+                  className="inline-flex items-center justify-center border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition hover:border-primary-500/70"
+                >
+                  Login
+                </Link>
+                <Link
+                  href={`/login?redirect=/courses/${id}`}
+                  className="inline-flex items-center justify-center border-2 border-primary-500 bg-primary-500 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-primary-600"
+                >
+                  Enroll Now
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
+            <section className="overflow-hidden border-2 border-border bg-surface/90 shadow-(--shadow-soft)">
+              <div className="relative aspect-16/8 border-b-2 border-border bg-surface-raised">
+                {course.thumbnail ? (
+                  <img
+                    src={course.thumbnail}
+                    alt={course.title}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center bg-[linear-gradient(135deg,rgba(124,58,237,0.2),rgba(245,158,11,0.12))]">
+                    <BookOpen className="h-16 w-16 text-primary-200" />
+                  </div>
+                )}
+
+                <div className="absolute left-5 top-5 border-2 border-border bg-surface/90 px-4 py-1.5 text-xs font-black uppercase tracking-[0.24em] text-foreground">
+                  {course.level || "all levels"}
+                </div>
+              </div>
+
+              <div className="p-6 md:p-8">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
+                  <span className="border border-border px-3 py-1">
+                    {course.category || "General"}
+                  </span>
+                  <span className="border border-border px-3 py-1">
+                    {course.language || "English"}
+                  </span>
+                  <span className="border border-border px-3 py-1">
+                    {course.isPublished ? "Published" : "Draft"}
+                  </span>
+                </div>
+
+                <h1 className="mt-5 text-3xl font-black uppercase tracking-wide md:text-5xl">
+                  {course.title}
+                </h1>
+
+                <p className="mt-4 max-w-3xl text-base leading-7 text-muted-foreground md:text-lg">
+                  {course.shortDescription || course.description || "No description available."}
+                </p>
+
+                <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <div className="border-2 border-border bg-surface-raised p-4">
+                    <Clock3 className="h-5 w-5 text-primary-300" />
+                    <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Duration</p>
+                    <p className="mt-1 text-lg font-black text-foreground">{formatDuration(course.totalDurationMinutes)}</p>
+                  </div>
+
+                  <div className="border-2 border-border bg-surface-raised p-4">
+                    <Star className="h-5 w-5 text-primary-300" />
+                    <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Rating</p>
+                    <p className="mt-1 text-lg font-black text-foreground">
+                      {course.ratingsAverage ? `${course.ratingsAverage.toFixed(1)} / 5` : "No ratings yet"}
+                    </p>
+                  </div>
+
+                  <div className="border-2 border-border bg-surface-raised p-4">
+                    <Users className="h-5 w-5 text-primary-300" />
+                    <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Enrolled</p>
+                    <p className="mt-1 text-lg font-black text-foreground">{course.enrolledCount ?? 0}</p>
+                  </div>
+
+                  <div className="border-2 border-border bg-surface-raised p-4">
+                    <BadgeCheck className="h-5 w-5 text-primary-300" />
+                    <p className="mt-3 text-xs uppercase tracking-[0.22em] text-muted-foreground">Price</p>
+                    <p className="mt-1 text-lg font-black text-foreground">{formatPrice(course.price)}</p>
+                  </div>
+                </div>
+
+                {course.tags?.length ? (
+                  <div className="mt-8 flex flex-wrap gap-2">
+                    {course.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="border-2 border-border bg-surface-raised px-3 py-1.5 text-xs font-semibold text-foreground"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </section>
+
+            <aside className="space-y-6">
+              <div className="border-2 border-border bg-surface/90 p-6 shadow-(--shadow-soft)">
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-primary-200">Instructor</p>
+                <div className="mt-4 flex items-center gap-4">
+                  {course.instructor?.avatar ? (
+                    <img
+                      src={course.instructor.avatar}
+                      alt={course.instructor.name}
+                      className="h-16 w-16 border-2 border-primary-500/70 object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-16 w-16 items-center justify-center border-2 border-primary-500/70 bg-primary-500/15 text-xl font-black text-primary-200">
+                      {(course.instructor?.name || "I").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+
+                  <div>
+                    <p className="text-xl font-black text-foreground">
+                      {course.instructor?.name || "Instructor not assigned"}
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      {course.instructor?.email || course.instructor?.role || "Course mentor"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-2 border-border bg-surface/90 p-6 shadow-(--shadow-soft)">
+                <p className="text-xs font-black uppercase tracking-[0.28em] text-primary-200">Course Data</p>
+                <dl className="mt-5 space-y-4 text-sm">
+                  <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                    <dt className="text-muted-foreground">Course ID</dt>
+                    <dd className="font-semibold text-foreground">{course._id}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                    <dt className="text-muted-foreground">Slug</dt>
+                    <dd className="font-semibold text-foreground">{course.slug || "--"}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                    <dt className="text-muted-foreground">Created</dt>
+                    <dd className="font-semibold text-foreground">{course.createdAt ? new Date(course.createdAt).toLocaleDateString() : "--"}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">Updated</dt>
+                    <dd className="font-semibold text-foreground">{course.updatedAt ? new Date(course.updatedAt).toLocaleDateString() : "--"}</dd>
+                  </div>
+                </dl>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </main>
+    );
+  } catch {
+    notFound();
+  }
+}

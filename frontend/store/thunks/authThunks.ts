@@ -1,54 +1,17 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/lib/api";
-import type { AuthUser } from "@/store/slices/authSlice";
+import type {
+  AuthResponse,
+  AuthUser,
+  GoogleAuthPayload,
+  LoginPayload,
+  MeResponse,
+  RefreshResponse,
+  RegisterPayload,
+  RegisterResponse,
+  VerifyEmailResponse,
+} from "@/types/auth";
 import type { RootState } from "@/store";
-
-interface RegisterPayload {
-  name: string;
-  email: string;
-  password: string;
-  role?: "student" | "instructor";
-}
-
-interface LoginPayload {
-  email: string;
-  password: string;
-}
-
-interface GoogleAuthPayload {
-  idToken?: string;
-  accessToken?: string;
-  role?: "student" | "instructor";
-}
-
-interface AuthResponse {
-  success: boolean;
-  message: string;
-  accessToken: string;
-  user: AuthUser;
-}
-
-interface RegisterResponse {
-  success: boolean;
-  message: string;
-  user: AuthUser;
-}
-
-interface VerifyEmailResponse {
-  success: boolean;
-  message: string;
-}
-
-interface RefreshResponse {
-  success: boolean;
-  message: string;
-  accessToken: string;
-}
-
-interface MeResponse {
-  success: boolean;
-  user: AuthUser;
-}
 
 // Register user
 export const registerUser = createAsyncThunk<AuthUser, RegisterPayload>(
@@ -181,3 +144,5 @@ export const fetchMe = createAsyncThunk<
     }
   },
 );
+
+

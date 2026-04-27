@@ -1,0 +1,524 @@
+═══════════════════════════════════════════════════════════════════════════════
+                    📋 LMS FULL STACK PROJECT - COMPLETE SYSTEM SPECIFICATION
+═══════════════════════════════════════════════════════════════════════════════
+
+PROJECT OVERVIEW
+================
+A Learning Management System (LMS) built with:
+- Frontend: Next.js 15 + React 19 + TypeScript + Redux Toolkit + Axios + TailwindCSS
+- Backend: Node.js + Express + MongoDB + JWT + Nodemailer + Google Auth
+- Auth Pattern: httpOnly refresh cookie + in-memory access token
+- Roles: Student, Instructor, Admin
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🔐 AUTHENTICATION FEATURES (All Users)
+═══════════════════════════════════════════════════════════════════════════════
+
+1. USER REGISTRATION
+   - Sign up with email and password
+   - Password validation: min 8 characters
+   - Email uniqueness check
+   - Automatic email verification email sent
+   - User starts with "Student" role by default
+   - User must verify email before first login
+
+2. EMAIL VERIFICATION
+   - User receives verification link via email
+   - Click link to verify email
+   - Once verified, can log in
+   - Verification token expires after set time
+
+3. USER LOGIN
+   - Email/password login
+   - Email must be verified first
+   - Issues JWT access token (short-lived, in-memory)
+   - Issues JWT refresh token (httpOnly cookie, secure)
+   - Last login timestamp recorded
+   - Returns user profile data
+
+4. GOOGLE OAUTH LOGIN
+   - Login via Google IdToken
+   - Auto-creates user if new
+   - Auto-verifies email (Google emails are trusted)
+   - Sets avatar from Google profile
+   - Returns tokens same as regular login
+
+5. TOKEN REFRESH
+   - Refresh endpoint uses httpOnly cookie (automatic)
+   - Access token expires → frontend gets 401
+   - Axios interceptor auto-detects 401
+   - Interceptor calls refresh endpoint
+   - New access token issued
+   - Original request retried automatically
+   - NO page refresh/logout needed
+
+6. USER LOGOUT
+   - Clears refresh token from database
+   - Clears refresh token cookie
+   - Clears Redux state on frontend
+   - In-memory access token cleared
+
+7. VIEW MY PROFILE (/api/auth/me)
+   - Protected route (needs auth)
+   - Returns current logged-in user details
+   - Includes name, email, avatar, role, stats
+
+8. UPDATE PROFILE
+   - Change name
+   - Change avatar URL
+   - Protected route (needs auth)
+
+9. CHANGE PASSWORD
+   - Old password verification required
+   - New password min 8 characters
+   - Password hashed with bcrypt
+   - Protected route (needs auth)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📚 COURSE FEATURES
+═══════════════════════════════════════════════════════════════════════════════
+
+FOR ALL USERS - BROWSE COURSES
+==============================
+
+GET ALL COURSES (GET /api/courses)
+- See published courses
+- Filter by instructor, category
+- Search by title/description
+- Pagination support
+- Includes course stats (enrolled count, rating)
+
+GET COURSE DETAILS (GET /api/courses/:id)
+- Full course info
+- All sections and lessons
+- Instructor details
+- Enrollment count
+- Preview lessons visible to non-enrolled
+
+
+FOR STUDENTS - ENROLL & LEARN
+============================
+
+1. ENROLL IN COURSE
+   - Click "Enroll" button on course page
+   - Creates enrollment record
+   - Student added to course
+   - Progress starts at 0%
+   - Enrollment status: "active"
+
+2. VIEW MY ENROLLMENTS (GET /api/courses/enrollments/mine)
+   - List all courses student is enrolled in
+   - Shows progress percentage
+   - Shows completed lessons count
+   - Shows enrollment date
+   - Filter by status (active, completed, cancelled)
+
+3. ACCESS COURSE CONTENT
+   - View sections and lessons
+   - Only enrolled students can access
+   - Preview lessons viewable without enrollment
+
+4. WATCH VIDEO LESSONS
+   - Video type lessons with URL
+   - Track duration watched
+   - Player controls
+
+5. READ ARTICLE LESSONS
+   - Article type with HTML/text content
+   - Can read multiple times
+
+6. TAKE QUIZZES
+   - Quiz type lessons
+   - Submit answers
+   - Track quiz completion
+
+7. MARK LESSON COMPLETE (PUT /api/courses/:courseId/progress)
+   - Track completed lessons
+   - Auto-update progress percentage
+   - When progress = 100% → enrollment status auto-changes to "completed"
+   - Completion date recorded
+
+8. VIEW PROGRESS
+   - See % completion of course
+   - See which lessons completed
+   - See time remaining
+
+9. GET CLASSMATES (GET /api/courses/:courseId/classmates)
+   - See other students in same course
+   - View classmate profiles
+   - Future: comment/message classmates
+
+10. CANCEL ENROLLMENT
+    - Drop course
+    - Enrollment status: "cancelled"
+    - Progress data preserved (can re-enroll)
+
+
+FOR INSTRUCTORS - CREATE & MANAGE
+================================
+
+1. CREATE COURSE
+   - Course title (3-160 characters)
+   - Description
+   - Thumbnail/cover image
+   - Category
+   - Price (free or paid)
+   - Initial status: "draft" (not published)
+
+2. ADD SECTIONS & LESSONS
+   - Create sections in order
+   - Add lessons to sections (video/article/quiz)
+   - Set lesson order
+   - Set video URLs
+   - Write article content
+   - Set quiz questions
+
+3. VIEW MY COURSES (GET /api/courses/manage/mine)
+   - List all courses created (draft + published)
+   - Edit, delete, publish, unpublish
+
+4. EDIT COURSE
+   - Update title, description, thumbnail
+   - Update sections/lessons
+   - Reorder content
+
+5. PUBLISH/UNPUBLISH COURSE
+   - Publish: course becomes visible to all students
+   - Unpublish: course hidden from course list
+   - Enrolled students keep access
+
+6. VIEW STUDENT ENROLLMENTS (GET /api/courses/:id/students)
+   - See all students enrolled in course
+   - View student progress
+   - View completion status
+
+7. GET ALL MY STUDENTS (GET /api/courses/instructor/students)
+   - Consolidated list of all students across all instructor's courses
+   - Filter by course
+   - Export student data (future)
+
+8. DELETE COURSE
+   - Remove course completely
+   - All enrollments cancelled
+   - All progress deleted
+
+
+FOR ADMINS - SYSTEM MANAGEMENT
+=============================
+
+1. USER MANAGEMENT
+   - View all users (students, instructors, admins)
+   - Change user role: student → instructor → admin
+   - Deactivate/reactivate users (soft delete)
+   - View user stats
+
+2. COURSE MODERATION
+   - View all courses (published + draft)
+   - Delete courses violating rules
+   - View course statistics
+
+3. PLATFORM ANALYTICS (future)
+   - Total users, courses, enrollments
+   - Most popular courses
+   - Student engagement metrics
+
+
+═══════════════════════════════════════════════════════════════════════════════
+👤 USER PROFILE FEATURES
+═══════════════════════════════════════════════════════════════════════════════
+
+USER STATS TRACKED
+- enrolledCoursesCount: How many courses student enrolled in
+- createdCoursesCount: How many courses instructor created
+- lastLoginAt: Last login timestamp
+- lastSeenAt: Last activity timestamp
+- isActive: Account active/deactivated status
+
+USER DATA
+- Email (verified/unverified)
+- Avatar (from registration or Google)
+- Role (student/instructor/admin)
+- Google OAuth ID (if registered with Google)
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📊 COURSE CONTENT STRUCTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+Course
+├── Sections
+│   └── Lessons (ordered by type)
+│       ├── Video Lesson (videoUrl, durationMinutes)
+│       ├── Article Lesson (HTML content)
+│       └── Quiz Lesson (questions array)
+├── Metadata
+│   ├── Slug (unique URL-safe name)
+│   ├── Thumbnail
+│   ├── Category
+│   ├── Price
+│   ├── Difficulty (beginner/intermediate/advanced)
+│   ├── Language
+│   └── Status (draft/published)
+└── Stats
+    ├── enrolledCount
+    ├── averageRating
+    └── reviewCount
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🔒 DATA SECURITY & VALIDATIONS
+═══════════════════════════════════════════════════════════════════════════════
+
+AUTHENTICATION SECURITY
+- Passwords hashed with bcrypt (salt rounds: 10)
+- JWT tokens with expiry (access: short, refresh: long)
+- Refresh tokens stored in httpOnly cookies only
+- Access tokens in memory only (no localStorage)
+- Email verification before login allowed
+- Rate limiting on auth endpoints
+
+INPUT VALIDATION (Joi)
+- Email format validation
+- Password strength checks
+- Course title/description length limits
+- User name 2-60 characters
+- Lesson content type validation
+
+AUTHORIZATION CHECKS
+- protect: User must be authenticated
+- authorize(roles): User role must match (student/instructor/admin)
+- requireActiveAccount: User account must not be deactivated
+- Instructors can only edit their own courses
+- Students can only view/edit their own enrollments
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🌐 API ENDPOINTS SUMMARY
+═══════════════════════════════════════════════════════════════════════════════
+
+AUTHENTICATION ENDPOINTS
+┌─────────┬──────────────────────────────┬────────┬──────────────────────────┐
+│ METHOD  │ ENDPOINT                     │ AUTH   │ DESCRIPTION              │
+├─────────┼──────────────────────────────┼────────┼──────────────────────────┤
+│ POST    │ /api/auth/register           │ ❌    │ Register new user        │
+│ GET     │ /api/auth/verify-email/:token│ ❌    │ Verify email             │
+│ POST    │ /api/auth/login              │ ❌    │ Login with email/password│
+│ POST    │ /api/auth/google             │ ❌    │ Login with Google        │
+│ POST    │ /api/auth/refresh            │ ❌    │ Refresh access token     │
+│ POST    │ /api/auth/logout             │ ✅    │ Logout user              │
+│ GET     │ /api/auth/me                 │ ✅    │ Get current user         │
+│ PUT     │ /api/auth/profile            │ ✅    │ Update profile           │
+│ PUT     │ /api/auth/password           │ ✅    │ Change password          │
+└─────────┴──────────────────────────────┴────────┴──────────────────────────┘
+
+COURSE ENDPOINTS
+┌─────────┬──────────────────────────────────┬──────────────────┬──────────────────────────┐
+│ METHOD  │ ENDPOINT                         │ AUTH             │ DESCRIPTION              │
+├─────────┼──────────────────────────────────┼──────────────────┼──────────────────────────┤
+│ GET     │ /api/courses                     │ ❌               │ Get all published courses│
+│ GET     │ /api/courses/:id                 │ ❌               │ Get course details       │
+│ POST    │ /api/courses                     │ ✅ Instructor    │ Create new course        │
+│ PUT     │ /api/courses/:id                 │ ✅ Instructor    │ Update course            │
+│ DELETE  │ /api/courses/:id                 │ ✅ Instructor    │ Delete course            │
+│ POST    │ /api/courses/:id/publish         │ ✅ Instructor    │ Publish course           │
+│ POST    │ /api/courses/:id/unpublish       │ ✅ Instructor    │ Unpublish course         │
+│ GET     │ /api/courses/manage/mine         │ ✅ Instructor    │ Get instructor's courses │
+│ GET     │ /api/courses/:id/students        │ ✅ Instructor    │ Get enrolled students    │
+│ GET     │ /api/courses/instructor/students │ ✅ Instructor    │ Get all my students      │
+└─────────┴──────────────────────────────────┴──────────────────┴──────────────────────────┘
+
+ENROLLMENT ENDPOINTS
+┌─────────┬──────────────────────────────┬──────────────┬──────────────────────────┐
+│ METHOD  │ ENDPOINT                     │ AUTH         │ DESCRIPTION              │
+├─────────┼──────────────────────────────┼──────────────┼──────────────────────────┤
+│ POST    │ /api/courses/:id/enroll      │ ✅ Student   │ Enroll in course         │
+│ GET     │ /api/courses/enrollments/mine│ ✅ Student   │ Get my enrollments       │
+│ PUT     │ /api/courses/:id/progress    │ ✅ Student   │ Update progress          │
+│ GET     │ /api/courses/:id/students    │ ✅ Instructor│ Get course enrollments   │
+└─────────┴──────────────────────────────┴──────────────┴──────────────────────────┘
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📱 FRONTEND PAGES & FEATURES
+═══════════════════════════════════════════════════════════════════════════════
+
+- Login Page (/(auth)/login)
+  → Email/password or Google login
+  
+- Register Page (/(auth)/register)
+  → Create account
+  
+- Dashboard (/dashboard)
+  → Main hub (future student courses, instructor tools)
+  
+- Browse Courses
+  → List and search all courses
+  
+- Course Detail
+  → View course info, enroll, view preview
+  
+- Course Learning
+  → Play videos, read articles, take quizzes, track progress
+  
+- Instructor Dashboard
+  → Create/manage courses, view students
+  
+- User Profile
+  → View/edit profile, change password
+  
+- Settings
+  → Account settings, deactivate account
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🎯 KEY BUSINESS LOGIC
+═══════════════════════════════════════════════════════════════════════════════
+
+1. AUTO-COMPLETION
+   When student marks all lessons complete (progress = 100%):
+   - Enrollment status auto-changes to "completed"
+   - Completion date recorded
+
+2. EMAIL VERIFICATION REQUIREMENT
+   - Users cannot login until email verified
+   - Google users auto-verified (trusted)
+
+3. ROLE-BASED ACCESS
+   - Student: Course enrollment only
+   - Instructor: Course creation only
+   - Admin: System management
+
+4. TOKEN REFRESH ON 401
+   - Axios interceptor auto-detects 401
+   - Refreshes token without user action
+   - Retries original request automatically
+
+5. PROGRESS TRACKING
+   - Enrollment records track progress %
+   - Track completed lessons
+   - Track completion date
+
+6. USER STATS
+   - Auto-increment enrolled courses count
+   - Auto-decrement if enrollment cancelled
+   - Auto-increment created courses count
+   - Auto-decrement if course deleted
+
+
+═══════════════════════════════════════════════════════════════════════════════
+📂 PROJECT FOLDER STRUCTURE
+═══════════════════════════════════════════════════════════════════════════════
+
+Backend/
+├── models/
+│   ├── user.model.js
+│   ├── course.model.js
+│   └── enrollment.model.js
+├── controllers/
+│   ├── auth.controller.js
+│   ├── course.controller.js
+│   ├── enrollment.controller.js
+│   └── user.controller.js
+├── routes/
+│   ├── auth.route.js
+│   ├── course.route.js
+│   └── user.route.js
+├── middlewares/
+│   ├── auth.middleware.js
+│   ├── validate.middleware.js
+│   └── errorHandler.middleware.js
+├── validators/
+│   ├── auth.validator.js
+│   ├── course.validator.js
+│   └── enrollment.validator.js
+├── services/
+├── utils/
+│   ├── sendEmail.js
+│   └── verifyGoogleIdToken.js
+├── config/
+│   └── db.js
+├── app.js
+├── package.json
+└── .env
+
+frontend/
+├── app/
+│   ├── (auth)/
+│   │   ├── login/
+│   │   └── register/
+│   ├── dashboard/
+│   ├── layout.tsx
+│   ├── page.tsx
+│   └── globals.css
+├── components/
+│   └── auth/
+├── store/
+│   ├── slices/
+│   │   └── authSlice.ts
+│   ├── provider.tsx
+│   └── index.ts
+├── lib/
+│   └── api.ts
+├── package.json
+└── tsconfig.json
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🔧 TECH STACK DETAILS
+═══════════════════════════════════════════════════════════════════════════════
+
+BACKEND DEPENDENCIES
+- express: HTTP server framework
+- mongoose: MongoDB ODM
+- jsonwebtoken: JWT generation and verification
+- bcryptjs: Password hashing
+- joi: Request validation
+- nodemailer: Email sending
+- google-auth-library: Google token verification
+- cors: Cross-origin resource sharing
+- helmet: Security headers
+- morgan: HTTP logging
+- cookie-parser: Cookie parsing
+- express-rate-limit: Rate limiting
+
+FRONTEND DEPENDENCIES
+- next: React framework with SSR
+- react: UI library
+- redux-toolkit: State management
+- react-redux: Redux bindings for React
+- axios: HTTP client
+- react-hook-form: Form handling
+- zod: Schema validation
+- tailwindcss: Utility-first CSS
+- sonner: Toast notifications
+- lucide-react: Icon library
+- google-auth-library: Google OAuth
+
+
+═══════════════════════════════════════════════════════════════════════════════
+🚀 GETTING STARTED
+═══════════════════════════════════════════════════════════════════════════════
+
+BACKEND SETUP
+1. cd Backend
+2. npm install
+3. Create .env file based on .env.example
+4. npm run dev
+
+FRONTEND SETUP
+1. cd frontend
+2. npm install
+3. Create .env file with API URL
+4. npm run dev
+
+DEFAULT PORTS
+- Frontend: localhost:3000
+- Backend: localhost:5000
+- MongoDB: Connected via MONGO_URI
+
+
+═══════════════════════════════════════════════════════════════════════════════
+END OF SPECIFICATION
+═══════════════════════════════════════════════════════════════════════════════

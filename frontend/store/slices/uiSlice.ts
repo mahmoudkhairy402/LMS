@@ -1,9 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-
-interface UiState {
-  isGlobalLoading: boolean;
-  isSidebarOpen: boolean;
-}
+import type { UiState } from "@/types/ui";
 
 const initialState: UiState = {
   isGlobalLoading: false,

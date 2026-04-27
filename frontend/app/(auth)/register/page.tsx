@@ -69,6 +69,9 @@ export default function RegisterPage() {
     watch,
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: "student",
+    },
   });
 
   const password = watch("password");
@@ -78,7 +81,7 @@ export default function RegisterPage() {
 
   useEffect(() => {
     if (user) {
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   }, [user, router]);
 
@@ -97,13 +100,13 @@ export default function RegisterPage() {
 
   return (
     <div className="w-full max-w-5xl">
-      <div className="grid overflow-hidden rounded-2xl border border-neutral-700/80 bg-neutral-800/50 backdrop-blur-sm shadow-(--shadow-soft) lg:grid-cols-2">
-        <section className="hidden lg:flex flex-col justify-between border-r border-neutral-700/70 bg-linear-to-b from-neutral-900 to-neutral-800 p-10">
+      <div className="grid overflow-hidden border-2 border-border bg-neutral-800/50 shadow-lg lg:grid-cols-2">
+        <section className="hidden lg:flex flex-col justify-between border-r-2 border-border bg-surface p-10">
           <div>
             <h1 className="mb-3 text-4xl font-bold text-primary-500">EduPath</h1>
             <p className="text-neutral-300">Build your account and start learning today.</p>
           </div>
-          <div className="space-y-3 rounded-xl border border-primary-500/20 bg-primary-500/10 p-4 text-sm text-neutral-300">
+          <div className="space-y-3 border-2 border-primary-500/20 bg-primary-500/10 p-4 text-sm text-neutral-300">
             <div className="flex items-center gap-2 text-primary-300">
               <ShieldCheck className="h-5 w-5" />
               <span className="font-semibold">Trusted and Secure</span>
@@ -135,8 +138,9 @@ export default function RegisterPage() {
                 <input
                   type="text"
                   placeholder="John Doe"
+                  autoComplete="name"
                   {...register("name")}
-                  className="w-full rounded-lg border border-neutral-600 bg-neutral-700/50 py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                  className="w-full border-2 border-border bg-surface py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none"
                 />
                 <User className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
               </div>
@@ -149,8 +153,9 @@ export default function RegisterPage() {
                 <input
                   type="email"
                   placeholder="name@example.com"
+                  autoComplete="email"
                   {...register("email")}
-                  className="w-full rounded-lg border border-neutral-600 bg-neutral-700/50 py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                  className="w-full border-2 border-border bg-surface py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none"
                 />
                 <Mail className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
               </div>
@@ -163,8 +168,9 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
+                  autoComplete="new-password"
                   {...register("password")}
-                  className="w-full rounded-lg border border-neutral-600 bg-neutral-700/50 py-3 pl-10 pr-10 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                  className="w-full border-2 border-border bg-surface py-3 pl-10 pr-10 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none"
                 />
                 <Lock className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
                 <button
@@ -183,7 +189,7 @@ export default function RegisterPage() {
                     {[...Array(5)].map((_, i) => (
                       <div
                         key={i}
-                        className={`h-1 flex-1 rounded-full transition ${
+                        className={`h-1 flex-1 transition ${
                           i < strengthValue
                             ? strength.level === "strong"
                               ? "bg-success"
@@ -205,7 +211,7 @@ export default function RegisterPage() {
               <div className="grid grid-cols-2 gap-3">
                 <label className="cursor-pointer">
                   <input type="radio" value="student" {...register("role")} className="peer sr-only" />
-                  <div className="flex items-center justify-center gap-2 rounded-lg border border-neutral-600 bg-neutral-700/50 py-2.5 text-sm font-medium text-white transition hover:border-primary-500/50 peer-checked:border-primary-500 peer-checked:bg-primary-500/15">
+                  <div className="flex items-center justify-center gap-2 border-2 border-border bg-surface py-2.5 text-sm font-medium text-white transition hover:border-primary-500/50 peer-checked:border-primary-500 peer-checked:bg-primary-500/15">
                     <GraduationCap className="h-4 w-4" />
                     Student
                   </div>
@@ -213,7 +219,7 @@ export default function RegisterPage() {
 
                 <label className="cursor-pointer">
                   <input type="radio" value="instructor" {...register("role")} className="peer sr-only" />
-                  <div className="flex items-center justify-center gap-2 rounded-lg border border-neutral-600 bg-neutral-700/50 py-2.5 text-sm font-medium text-white transition hover:border-primary-500/50 peer-checked:border-primary-500 peer-checked:bg-primary-500/15">
+                  <div className="flex items-center justify-center gap-2 border-2 border-border bg-surface py-2.5 text-sm font-medium text-white transition hover:border-primary-500/50 peer-checked:border-primary-500 peer-checked:bg-primary-500/15">
                     <MonitorPlay className="h-4 w-4" />
                     Instructor
                   </div>
@@ -225,7 +231,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary-500 to-primary-600 py-3 font-semibold text-white transition duration-200 hover:from-primary-600 hover:to-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 border-2 border-primary-500 bg-primary-500 py-3 font-semibold text-white transition duration-200 hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

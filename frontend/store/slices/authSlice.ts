@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { AuthState, AuthUser } from "@/types/auth";
 import {
   registerUser,
   loginUser,
@@ -8,25 +9,6 @@ import {
   fetchMe,
   verifyUserEmail,
 } from "@/store/thunks/authThunks";
-
-export type UserRole = "student" | "instructor" | "admin";
-
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  avatar: string | null;
-  role: UserRole;
-  isEmailVerified?: boolean;
-}
-
-export interface AuthState {
-  user: AuthUser | null;
-  accessToken: string | null;
-  isAuthenticated: boolean;
-  status: "idle" | "loading" | "succeeded" | "failed";
-  error: string | null;
-}
 
 const initialState: AuthState = {
   user: null,

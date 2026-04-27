@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -47,18 +47,21 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  console.log("🚀 ~ LoginPage ~ user:", user)
   useEffect(() => {
-    if (user) {
+    if (user && user.role === "student") {
+      router.push("/");
+    } else if (user && (user.role === "instructor" || user.role === "admin")) {
       router.push("/dashboard");
     }
   }, [user, router]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsSubmitting(true);
+
     try {
       const result = await dispatch(loginUser(data)).unwrap();
       toast.success(result.message || "Logged in successfully.");
-      router.push("/dashboard");
     } catch (error) {
       toast.error(typeof error === "string" ? error : "Login failed. Please try again.");
     } finally {
@@ -68,13 +71,13 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-5xl">
-      <div className="grid overflow-hidden rounded-2xl border border-neutral-700/80 bg-neutral-800/50 backdrop-blur-sm shadow-(--shadow-soft) lg:grid-cols-2">
-        <section className="hidden lg:flex flex-col justify-between border-r border-neutral-700/70 bg-linear-to-b from-neutral-900 to-neutral-800 p-10">
+      <div className="grid overflow-hidden border-2 border-border bg-neutral-800/50 shadow-lg lg:grid-cols-2">
+        <section className="hidden lg:flex flex-col justify-between border-r-2 border-border bg-surface p-10">
           <div>
             <h1 className="mb-3 text-4xl font-bold text-primary-500">EduPath</h1>
             <p className="text-neutral-300">Your journey to mastery starts here.</p>
           </div>
-          <div className="rounded-xl border border-primary-500/20 bg-primary-500/10 p-4">
+          <div className="border-2 border-primary-500/20 bg-primary-500/10 p-4">
             <div className="mb-2 flex items-center gap-2 text-primary-300">
               <ShieldCheck className="h-5 w-5" />
               <span className="text-sm font-semibold">Secure Authentication</span>
@@ -102,7 +105,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="name@example.com"
                   {...register("email")}
-                  className="w-full rounded-lg border border-neutral-600 bg-neutral-700/50 py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                  className="w-full border-2 border-border bg-surface py-3 pl-10 pr-4 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none"
                 />
                 <Mail className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
               </div>
@@ -112,16 +115,16 @@ export default function LoginPage() {
             <div>
               <div className="mb-2 flex items-center justify-between">
                 <label className="block text-sm font-medium text-neutral-200">Password</label>
-                <Link href="/forgot-password" className="text-xs text-primary-400 transition hover:text-primary-300">
+                {/* <Link href="/forgot-password" className="text-xs text-primary-400 transition hover:text-primary-300">
                   Forgot Password?
-                </Link>
+                </Link> */}
               </div>
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="••••••••"
                   {...register("password")}
-                  className="w-full rounded-lg border border-neutral-600 bg-neutral-700/50 py-3 pl-10 pr-10 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500/20"
+                  className="w-full border-2 border-border bg-surface py-3 pl-10 pr-10 text-white placeholder-neutral-500 transition focus:border-primary-500 focus:outline-none"
                 />
                 <Lock className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-neutral-500" />
                 <button
@@ -139,7 +142,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-lg bg-linear-to-r from-primary-500 to-primary-600 py-3 font-semibold text-white transition duration-200 hover:from-primary-600 hover:to-primary-700 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex w-full items-center justify-center gap-2 border-2 border-primary-500 bg-primary-500 py-3 font-semibold text-white transition duration-200 hover:bg-primary-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

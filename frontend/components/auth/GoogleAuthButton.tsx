@@ -8,7 +8,7 @@ import { toast } from "sonner";
 
 import { useAppDispatch } from "@/store/hooks";
 import { googleAuth } from "@/store/thunks/authThunks";
-import type { UserRole } from "@/store/slices/authSlice";
+import type { UserRole } from "@/types/auth";
 
 interface GoogleAuthButtonProps {
   label: string;

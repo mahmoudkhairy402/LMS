@@ -1,31 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ReactNode } from "react";
 import { Provider } from "react-redux";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import { store } from "@/store";
-import { fetchMe, refreshAccessToken } from "@/store/thunks/authThunks";
+import { fetchMe } from "@/store/thunks/authThunks";
 
 interface StoreProviderProps {
   children: ReactNode;
 }
 
 function AuthBootstrap() {
+  const isInitialized = useRef(false);
+
   useEffect(() => {
+    if (isInitialized.current) return;
+    isInitialized.current = true;
+
     let isActive = true;
 
     const bootstrapAuth = async () => {
       try {
-        const token = await store.dispatch(refreshAccessToken()).unwrap();
-        if (!isActive) {
-          return;
-        }
-
-        await store.dispatch(fetchMe(token)).unwrap();
+        // We no longer manually refresh the token here.
+        // We just fetch the user. If the token is expired, the backend returns 401,
+        // and our new Axios Interceptor will automatically pause this request,
+        // refresh the token, and retry it seamlessly!
+        await store.dispatch(fetchMe()).unwrap();
       } catch {
-        // No valid refresh session on startup.
+        // No valid session on startup or refresh failed.
       }
     };
 

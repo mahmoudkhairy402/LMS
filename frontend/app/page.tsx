@@ -1,34 +1,32 @@
+import { cookies } from "next/headers";
 import Link from "next/link";
+import HeroSection from "@/components/home/HeroSection";
+import InstructorsSection from "@/components/home/InstructorsSection";
+import CoursesSection from "@/components/home/CoursesSection";
+import ExperienceSection from "@/components/home/ExperienceSection";
+import YourCoursesSection from "@/components/home/YourCoursesSection";
+import { getLandingPageData } from "@/lib/home-data";
 
-export default function Home() {
+
+export default async function Home() {
+  const cookieStore = await  cookies();
+  const accessToken = cookieStore.get("accessToken")?.value;
+  const { courses, instructors, enrollments } =
+    await getLandingPageData(accessToken);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-6">
-      <main className="w-full max-w-2xl rounded-2xl border border-border bg-surface p-8 text-center shadow-(--shadow-soft)">
-        <h1 className="mb-3 text-4xl font-bold text-primary-500">EduPath LMS</h1>
-        <p className="mb-8 text-muted-foreground">
-          Local auth setup is ready. Start from login or go to dashboard.
-        </p>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.08)_1px,transparent_1px)] bg-size-[36px_36px]" />
 
-        <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link
-            href="/login"
-            className="rounded-lg bg-primary-500 px-5 py-3 font-semibold text-white transition hover:bg-primary-600"
-          >
-            Login
-          </Link>
-          <Link
-            href="/register"
-            className="rounded-lg border border-border px-5 py-3 font-semibold text-foreground transition hover:bg-surface-raised"
-          >
-            Register
-          </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-lg border border-border px-5 py-3 font-semibold text-foreground transition hover:bg-surface-raised"
-          >
-            Dashboard
-          </Link>
-        </div>
+      <main className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-6 md:px-8">
+       
+        <HeroSection />
+        <YourCoursesSection
+          enrollments={enrollments}
+        />
+        <InstructorsSection instructors={instructors} />
+        <CoursesSection courses={courses} />
+        <ExperienceSection />
       </main>
     </div>
   );
