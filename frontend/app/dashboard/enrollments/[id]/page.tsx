@@ -13,7 +13,7 @@ import type { Lesson } from "@/types/course";
 export default function CoursePlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const courseId = resolvedParams.id;
-  
+
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { selectedCourse, myEnrollments, status } = useAppSelector((state) => state.courses);
@@ -42,7 +42,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
     if (enrollment && enrollment.completedLessonIds) {
       setCompletedLessonIds(new Set(enrollment.completedLessonIds));
     }
-    
+
     // Auto-select first lesson if none is selected and course is loaded
     if (!activeLesson && selectedCourse?.sections && selectedCourse.sections.length > 0) {
       // Try to find the first incomplete lesson
@@ -82,7 +82,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
     selectedCourse.sections?.forEach((s) => {
       totalLessons += s.lessons?.length || 0;
     });
-    
+
     const progressPercent = totalLessons === 0 ? 100 : Math.round((newCompletedIds.size / totalLessons) * 100);
 
     try {
@@ -93,7 +93,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
           progressPercent,
         })
       ).unwrap();
-      
+
       toast.success("Progress saved!");
 
       // Auto-advance to next lesson
@@ -210,11 +210,10 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                 <button
                   onClick={handleMarkComplete}
                   disabled={completedLessonIds.has(activeLesson._id) || isUpdating}
-                  className={`inline-flex items-center gap-2 px-6 py-3 font-bold uppercase tracking-wider transition-all border-2 flex-shrink-0 ${
-                    completedLessonIds.has(activeLesson._id)
-                      ? "bg-green-500/10 text-green-500 border-green-500 cursor-default"
-                      : "bg-primary-500 text-white border-primary-500 hover:bg-primary-600 hover:border-primary-600 shadow-[4px_4px_0px_0px_rgba(var(--primary-600))] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(var(--primary-600))]"
-                  }`}
+                  className={`inline-flex items-center gap-2 px-6 py-3 font-bold uppercase tracking-wider transition-all border-2 flex-shrink-0 ${completedLessonIds.has(activeLesson._id)
+                    ? "bg-green-500/10 text-green-500 border-green-500 cursor-default"
+                    : "bg-primary-500 text-white border-primary-500 hover:bg-primary-600 hover:border-primary-600 shadow-[4px_4px_0px_0px_rgba(var(--primary-600))] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(var(--primary-600))]"
+                    }`}
                 >
                   {completedLessonIds.has(activeLesson._id) ? (
                     <>
@@ -273,11 +272,10 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                     <button
                       key={lesson._id}
                       onClick={() => handleLessonSelect(lesson)}
-                      className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${
-                        isActive
-                          ? "bg-primary-500/10 border-l-4 border-l-primary-500 pl-3"
-                          : "hover:bg-surface/50 border-l-4 border-l-transparent pl-3"
-                      }`}
+                      className={`w-full text-left p-4 flex items-start gap-3 transition-colors ${isActive
+                        ? "bg-primary-500/10 border-l-4 border-l-primary-500 pl-3"
+                        : "hover:bg-surface/50 border-l-4 border-l-transparent pl-3"
+                        }`}
                     >
                       <div className="mt-0.5 flex-shrink-0">
                         {isCompleted ? (
