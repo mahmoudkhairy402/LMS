@@ -6,7 +6,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const { ROLES } = require("../middlewares/auth.middleware");
 
 const USER_SAFE_SELECT =
-  "name email avatar role isEmailVerified createdAt updatedAt";
+  "name email avatar isActive role isEmailVerified createdAt updatedAt";
 
 // Helper: Calculate fresh stats for a user
 async function recalculateUserStats(userId) {

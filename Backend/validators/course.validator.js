@@ -22,7 +22,7 @@ const sectionInputSchema = Joi.object({
 const createCourseSchema = Joi.object({
   title: Joi.string().trim().min(3).max(160).required(),
   slug: Joi.string().trim().min(3).max(200).optional(),
-  description: Joi.string().trim().min(20).max(4000).required(),
+  description: Joi.string().trim().min(10).max(4000).required(),
   shortDescription: Joi.string().trim().max(280).allow("").optional(),
   thumbnail: Joi.string()
     .uri({ scheme: ["http", "https"] })
@@ -41,7 +41,7 @@ const createCourseSchema = Joi.object({
 const updateCourseSchema = Joi.object({
   title: Joi.string().trim().min(3).max(160).optional(),
   slug: Joi.string().trim().min(3).max(200).optional(),
-  description: Joi.string().trim().min(20).max(4000).optional(),
+  description: Joi.string().trim().min(10).max(4000).optional(),
   shortDescription: Joi.string().trim().max(280).allow("").optional(),
   thumbnail: Joi.string()
     .uri({ scheme: ["http", "https"] })

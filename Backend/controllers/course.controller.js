@@ -5,7 +5,7 @@ const asyncHandler = require("../utils/asyncHandler");
 const { ROLES } = require("../middlewares/auth.middleware");
 
 const COURSE_METADATA_SELECT =
-  "title slug shortDescription thumbnail category tags language level price isPublished instructor totalDurationMinutes enrolledCount ratingsAverage ratingsCount createdAt updatedAt";
+  "title slug description shortDescription thumbnail category tags language level price isPublished instructor totalDurationMinutes enrolledCount ratingsAverage ratingsCount createdAt updatedAt";
 
 function canManageCourse(user, course) {
   if (!user || !course) {
@@ -109,7 +109,6 @@ const getCourseById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const course = await Course.findById(id)
-    .select(COURSE_METADATA_SELECT)
     .populate("instructor", "name email avatar role stats");
 
   if (!course) {
