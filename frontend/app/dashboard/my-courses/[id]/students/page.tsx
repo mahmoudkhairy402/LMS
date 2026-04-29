@@ -4,21 +4,22 @@ import { useEffect, use } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getCourseEnrollments, getCourseById, clearSelectedCourse } from "@/store/thunks/courseThunks";
+import { getCourseEnrollments, getCourseById } from "@/store/thunks/courseThunks";
+import { clearSelectedCourse } from "@/store/slices/courseSlice";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import type { Enrollment } from "@/types/course";
 
 export default function CourseStudentsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const courseId = resolvedParams.id;
-  
+
   const dispatch = useAppDispatch();
   const { selectedCourse, courseEnrollments, status } = useAppSelector((state) => state.courses);
 
   useEffect(() => {
     dispatch(getCourseById(courseId));
     dispatch(getCourseEnrollments(courseId));
-    
+
     return () => {
       import("@/store/slices/courseSlice").then(({ clearSelectedCourse: clearAction }) => {
         dispatch(clearAction());
@@ -64,11 +65,10 @@ export default function CourseStudentsPage({ params }: { params: Promise<{ id: s
       accessorKey: "status",
       cell: (enrollment) => (
         <span
-          className={`inline-flex items-center px-2 py-1 text-xs font-medium border ${
-            enrollment.status === "completed"
+          className={`inline-flex items-center px-2 py-1 text-xs font-medium border ${enrollment.status === "completed"
               ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400"
               : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
-          }`}
+            }`}
         >
           {enrollment.status === "completed" ? "Completed" : "Active"}
         </span>
@@ -118,8 +118,8 @@ export default function CourseStudentsPage({ params }: { params: Promise<{ id: s
           <p className="text-3xl font-bold text-primary-500 mt-2">
             {courseEnrollments.length > 0
               ? Math.round(
-                  courseEnrollments.reduce((acc, e) => acc + (e.progressPercent || 0), 0) / courseEnrollments.length
-                )
+                courseEnrollments.reduce((acc, e) => acc + (e.progressPercent || 0), 0) / courseEnrollments.length
+              )
               : 0}%
           </p>
         </div>
