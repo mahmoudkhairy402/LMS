@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Circle, PlayCircle, FileText, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { getCourseById, getMyEnrollments, updateMyProgress, clearSelectedCourse } from "@/store/thunks/courseThunks";
+import { getCourseById, getMyEnrollments, updateMyProgress } from "@/store/thunks/courseThunks";
+import { clearSelectedCourse } from "@/store/slices/courseSlice";
 import type { Lesson } from "@/types/course";
 
 export default function CoursePlayerPage({ params }: { params: Promise<{ id: string }> }) {
