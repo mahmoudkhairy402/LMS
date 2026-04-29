@@ -145,6 +145,51 @@ export default async function CourseDetailsPage({
                     ))}
                   </div>
                 ) : null}
+
+                {/* Curriculum Section */}
+                {course.sections && course.sections.length > 0 && (
+                  <div className="mt-12">
+                    <h2 className="text-2xl font-black uppercase tracking-wide mb-6 border-b-2 border-border pb-2">
+                      Course Curriculum
+                    </h2>
+                    <div className="space-y-4">
+                      {course.sections.map((section, idx) => (
+                        <div key={section._id} className="border-2 border-border bg-surface-raised">
+                          <div className="p-4 border-b-2 border-border bg-surface/50 font-bold uppercase tracking-wide">
+                            Section {idx + 1}: {section.title}
+                          </div>
+                          <div className="divide-y divide-border/50">
+                            {section.lessons?.map((lesson, lessonIdx) => (
+                              <div key={lesson._id} className="p-4 flex items-center justify-between group hover:bg-surface/30 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs font-bold text-muted-foreground w-6 text-right">
+                                    {lessonIdx + 1}.
+                                  </span>
+                                  <span className={`font-medium ${lesson.isPreview ? "text-primary-400 font-bold" : "text-foreground"}`}>
+                                    {lesson.title}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                                  {lesson.isPreview && (
+                                    <span className="bg-primary-500/20 text-primary-400 px-2 py-1 border border-primary-500/30">
+                                      Preview
+                                    </span>
+                                  )}
+                                  <span className="w-16 text-right">{lesson.durationMinutes || 0} min</span>
+                                </div>
+                              </div>
+                            ))}
+                            {(!section.lessons || section.lessons.length === 0) && (
+                              <div className="p-4 text-sm text-muted-foreground italic">
+                                No lessons added to this section yet.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </section>
 

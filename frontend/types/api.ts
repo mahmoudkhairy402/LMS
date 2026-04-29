@@ -75,6 +75,19 @@ export interface CreateCoursePayload {
   level?: string;
   price?: number;
   isPublished?: boolean;
+  sections?: {
+    title: string;
+    order: number;
+    lessons: {
+      title: string;
+      type: "video" | "article" | "quiz";
+      order: number;
+      durationMinutes: number;
+      videoUrl?: string | null;
+      content?: string;
+      isPreview?: boolean;
+    }[];
+  }[];
 }
 
 export interface UpdateCoursePayload {
@@ -84,4 +97,6 @@ export interface UpdateCoursePayload {
 
 export interface UpdateProgressPayload {
   courseId: string;
+  progressPercent?: number;
+  completedLessonIds?: string[];
 }

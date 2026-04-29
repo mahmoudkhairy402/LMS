@@ -21,8 +21,6 @@ const navLinksByRole: Record<Role, { href: string; label: string; icon: React.El
   admin: [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/users", label: "Users", icon: Users },
-    { href: "/dashboard/courses", label: "Courses", icon: BookOpen },
-    { href: "/dashboard/instructors", label: "Instructors", icon: UserCheck },
   ],
   instructor: [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },

@@ -26,8 +26,8 @@ function getAuthHeaders(state: RootState) {
   const token = state.auth.accessToken;
   return token
     ? {
-        Authorization: `Bearer ${token}`,
-      }
+      Authorization: `Bearer ${token}`,
+    }
     : undefined;
 }
 
@@ -75,6 +75,7 @@ export const getCourseById = createAsyncThunk<
     const response = await api.get<CourseResponse>(`/api/courses/${id}`, {
       headers: getAuthHeaders(getState()),
     });
+
 
     return response.data.course;
   } catch (error: any) {

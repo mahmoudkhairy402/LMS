@@ -19,19 +19,16 @@ const navLinksByRole: Record<Role, { href: string; label: string }[]> = {
   admin: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/dashboard/users", label: "Users" },
-    { href: "/dashboard/courses", label: "Courses" },
-    { href: "/dashboard/instructors", label: "Instructors" },
   ],
   instructor: [
     { href: "/dashboard", label: "Dashboard" },
-    { href: "/dashboard/students", label: "My Students" },
-    { href: "/dashboard/myCources ", label: "My Courses" },
-    { href: "/courses", label: "Courses" },
-    { href: "/students", label: "Students" },
+    { href: "/dashboard/my-courses", label: "My Courses" },
+    { href: "/dashboard/my-students", label: "My Students" },
+    { href: "/courses", label: "All Courses" },
   ],
   student: [
-    { href: "/dashboard/enrollments", label: "My Courses" },
-    { href: "/courses", label: "explore Courses" },
+    { href: "/dashboard/enrollments", label: "My Enrollments" },
+    { href: "/courses", label: "Explore Courses" },
     { href: "/instructors", label: "Instructors" },
   ],
 };

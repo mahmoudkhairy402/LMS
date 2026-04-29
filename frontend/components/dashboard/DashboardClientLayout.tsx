@@ -1,19 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@/types/user";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import { useAppSelector } from "@/store/hooks";
+import Loading from "@/app/loading";
+import { toast } from "sonner";
 
 type Props = {
   children: React.ReactNode;
 };
 
 export default function DashboardClientLayout({ children }: Props) {
-  const user = useAppSelector((state) => state.auth.user) || {};
+  const { user, status } = useAppSelector((state) => state.auth);
+  const router = useRouter();
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    if (status === "failed") {
+      toast.error("Please login to access the dashboard.");
+      router.push("/login");
+    }
+  }, [status, router]);
+
+  if (status === "loading" || status === "idle" || !user) {
+    return <Loading />;
+  }
 
   return (
     <div className="flex min-h-screen bg-background text-foreground">
