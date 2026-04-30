@@ -13,6 +13,7 @@ const {
   bulkActivateUsers,
   bulkUpdateRole,
   bulkDeleteUsers,
+  getInstructors,
 } = require("../controllers/user.controller");
 const validate = require("../middlewares/validate.middleware");
 const {
@@ -30,6 +31,9 @@ const {
 } = require("../validators/user.validator");
 
 const router = express.Router();
+
+// Public route to get all instructors
+router.get("/instructors", getInstructors);
 
 // All user management routes are protected and require admin role
 router.use(protect);

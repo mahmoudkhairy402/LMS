@@ -1,0 +1,760 @@
+{
+  "info": {
+    "_postman_id": "7c2d7c1f-2d8b-4a8a-9a1a-2f7a8e2d1d01",
+    "name": "LMS Backend API",
+    "description": "Collection for the LMS backend API.\n\nHow to use:\n1. Import this collection and the matching environment file.\n2. Select the environment before sending requests.\n3. Register, verify email, then login (or Google login).\n4. Access token is stored automatically after login/google/refresh.\n5. Use protected endpoints for profile/courses/enrollments/users.\n\nDynamic variables:\n- base_url\n- access_token\n- verification_token\n- google_id_token\n- google_access_token\n- course_id\n- user_id\n- lesson_id_1\n- lesson_id_2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const token = pm.environment.get('access_token') || pm.collectionVariables.get('access_token');",
+          "const skipAuth = ['register', 'login', 'verify-email', 'google', 'health', 'refresh'];",
+          "const requestUrl = pm.request.url.toString().toLowerCase();",
+          "const shouldAttachAuth = token && !skipAuth.some((part) => requestUrl.includes(part));",
+          "if (shouldAttachAuth) {",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${token}` });",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const requestName = (pm.info.requestName || '').toLowerCase();",
+          "let json = {};",
+          "try {",
+          "  json = pm.response.json();",
+          "} catch (error) {",
+          "  json = {};",
+          "}",
+          "if ((requestName.includes('login') || requestName.includes('refresh') || requestName.includes('google')) && json.accessToken) {",
+          "  pm.environment.set('access_token', json.accessToken);",
+          "  pm.collectionVariables.set('access_token', json.accessToken);",
+          "}",
+          "const cookies = pm.cookies.toObject();",
+          "if (cookies && cookies.refreshToken) {",
+          "  pm.environment.set('refresh_token_cookie', cookies.refreshToken);",
+          "  pm.collectionVariables.set('refresh_token_cookie', cookies.refreshToken);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mahmoud Khairy\",\n  \"email\": \"mahmoud@example.com\",\n  \"password\": \"12345678\",\n  \"role\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            },
+            "description": "Create a new user account. This sends a verification email and does not log the user in yet."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "body": "{\n  \"success\": true,\n  \"message\": \"User registered successfully. Please verify your email.\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": null,\n    \"role\": \"student\",\n    \"isEmailVerified\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/verify-email/{{verification_token}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "verify-email", "{{verification_token}}"]
+            },
+            "description": "Verify the user email using the raw token sent in the verification email. Set verification_token manually when testing."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Email verified successfully. You can login now.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"mahmoud@example.com\",\n  \"password\": \"12345678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with email and password. This request stores access_token automatically in the active environment.",
+            "event": [
+              {
+                "listen": "test",
+                "script": {
+                  "type": "text/javascript",
+                  "exec": [
+                    "const json = pm.response.json();",
+                    "if (json && json.accessToken) {",
+                    "  pm.environment.set('access_token', json.accessToken);",
+                    "  pm.collectionVariables.set('access_token', json.accessToken);",
+                    "}",
+                    "const cookies = pm.cookies.toObject();",
+                    "if (cookies && cookies.refreshToken) {",
+                    "  pm.environment.set('refresh_token_cookie', cookies.refreshToken);",
+                    "  pm.collectionVariables.set('refresh_token_cookie', cookies.refreshToken);",
+                    "}",
+                    "pm.test('Login successful', function () {",
+                    "  pm.response.to.have.status(200);",
+                    "});"
+                  ]
+                }
+              }
+            ]
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged in successfully\",\n  \"accessToken\": \"eyJhbGciOi...\",\n  \"user\": {\n    \"id\": \"66f0c0000000000000000001\",\n    \"name\": \"Mahmoud Khairy\",\n    \"email\": \"mahmoud@example.com\",\n    \"avatar\": null,\n    \"role\": \"student\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Google Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accessToken\": \"{{google_access_token}}\",\n  \"role\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/google",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "google"]
+            },
+            "description": "Send Google accessToken from frontend OAuth flow. You can also send idToken instead."
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Mahmoud Updated\",\n  \"avatar\": \"https://example.com/new-avatar.png\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "profile"]
+            },
+            "description": "Update authenticated user profile fields."
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"12345678\",\n  \"newPassword\": \"NewPass@123\",\n  \"confirmNewPassword\": \"NewPass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/password",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "password"]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/auth/me",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "Get the current authenticated user."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/refresh",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "refresh"]
+            },
+            "description": "Refresh access token using the refreshToken cookie. Postman stores cookies automatically for the same domain."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Clear the refresh token cookie and remove the stored refresh token from the database."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Courses",
+      "item": [
+        {
+          "name": "Get Courses (Public Published)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/courses?page=1&limit=10&search=react",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "search", "value": "react" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Courses (Instructor/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/manage/mine",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "manage", "mine"]
+            }
+          }
+        },
+        {
+          "name": "Instructor Students (Instructor/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/instructor/students?page=1&limit=10&enrollmentStatus=cancelled",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "instructor", "students"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "enrollmentStatus", "value": "cancelled" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Course (Instructor/Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"React From Zero\",\n  \"description\": \"A complete beginner to intermediate React course with practical projects.\",\n  \"shortDescription\": \"Learn React from zero.\",\n  \"thumbnail\": \"https://example.com/react-course.png\",\n  \"category\": \"Web Development\",\n  \"tags\": [\"react\", \"frontend\"],\n  \"language\": \"English\",\n  \"level\": \"beginner\",\n  \"price\": 0,\n  \"isPublished\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/courses",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses"]
+            }
+          }
+        },
+        {
+          "name": "Get Course By Id (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Course (Instructor/Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"shortDescription\": \"Updated short description\",\n  \"price\": 49\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Publish Course (Instructor/Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/publish",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "publish"]
+            }
+          }
+        },
+        {
+          "name": "Unpublish Course (Instructor/Admin)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/unpublish",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "unpublish"]
+            }
+          }
+        },
+        {
+          "name": "Delete Course (Instructor/Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Course Enrollments (Instructor/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/students",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "students"]
+            }
+          }
+        },
+        {
+          "name": "Get Classmates (Student)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/classmates",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "classmates"]
+            }
+          }
+        },
+        {
+          "name": "Enroll In Course (Student)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/enroll",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "enroll"]
+            }
+          }
+        },
+        {
+          "name": "Get My Enrollments (Student/Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/courses/enrollments/mine",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "enrollments", "mine"]
+            }
+          }
+        },
+        {
+          "name": "Update My Progress (Student)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"progressPercent\": 35,\n  \"completedLessonIds\": [\"{{lesson_id_1}}\", \"{{lesson_id_2}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/courses/{{course_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["api", "courses", "{{course_id}}", "progress"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users (Admin)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users?page=1&limit=10&status=active&sortBy=createdAt&sortOrder=desc",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" },
+                { "key": "status", "value": "active" },
+                { "key": "sortBy", "value": "createdAt" },
+                { "key": "sortOrder", "value": "desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User By Id",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated User Name\",\n  \"role\": \"student\",\n  \"isEmailVerified\": true,\n  \"isActive\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/enrollments?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "enrollments"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Courses",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}/courses?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}", "courses"],
+              "query": [
+                { "key": "page", "value": "1" },
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deactivate User (Soft Delete)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"permanent\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Deactivate Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{user_id}}\"],\n  \"reason\": \"policy\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/bulk/deactivate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "bulk", "deactivate"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Activate Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{user_id}}\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/bulk/activate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "bulk", "activate"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Update Role",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{user_id}}\"],\n  \"newRole\": \"student\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/bulk/update-role",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "bulk", "update-role"]
+            }
+          }
+        },
+        {
+          "name": "Bulk Delete Users",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userIds\": [\"{{user_id}}\"],\n  \"permanent\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/bulk/delete",
+              "host": ["{{base_url}}"],
+              "path": ["api", "users", "bulk", "delete"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token_cookie",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "verification_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_id_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "google_access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "course_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lesson_id_1",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "lesson_id_2",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+# Use this workspace to collaborate
+workspace:
+  id: 510f6ff4-e570-4f35-8f6a-ee603a704781
+
+localResources:
+  collections:
+    - ..\LMS-Backend.postman_collection.json
+  environments:
+    - ..\LMS-Backend.postman_environment.json

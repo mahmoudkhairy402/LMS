@@ -600,6 +600,28 @@ const bulkDeleteUsers = asyncHandler(async (req, res) => {
   });
 });
 
+const getInstructors = asyncHandler(async (req, res) => {
+  const filter = {
+    role: ROLES.INSTRUCTOR,
+    isActive: true,
+  };
+
+  if (req.query.search) {
+    filter.$or = [
+      { name: { $regex: req.query.search, $options: "i" } },
+      { email: { $regex: req.query.search, $options: "i" } },
+    ];
+  }
+
+  const instructors = await User.find(filter).select("name email avatar stats");
+
+  return res.status(200).json({
+    success: true,
+    total: instructors.length,
+    instructors,
+  });
+});
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -607,6 +629,7 @@ module.exports = {
   deleteUser,
   getUserEnrollments,
   getUserCourses,
+  getInstructors,
   instructorStudents,
   getClassmates,
   bulkDeactivateUsers,
