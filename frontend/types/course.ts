@@ -34,7 +34,7 @@ export type Course = {
   instructor: Instructor;
   totalDurationMinutes: number;
   enrolledCount: number;
-  ratingsAverage: number;
+  ratingsAverage?: number;
   ratingsCount: number;
   sections?: Section[];
   lessons?: Lesson[];

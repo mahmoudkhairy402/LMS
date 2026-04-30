@@ -74,7 +74,7 @@ export default function MyEnrollmentsPage() {
                 </div>
 
                 {/* Content */}
-                <div className="p-5 flex flex-col flex-grow">
+                <div className="p-5 flex flex-col grow">
                   <div className="flex items-center gap-2 text-xs font-semibold text-surface-500 uppercase tracking-wider mb-2">
                     <span>{course.category || "General"}</span>
                   </div>
@@ -83,7 +83,7 @@ export default function MyEnrollmentsPage() {
                     {course.title}
                   </h3>
 
-                  <p className="text-sm text-surface-500 line-clamp-2 mb-4 flex-grow">
+                  <p className="text-sm text-surface-500 line-clamp-2 mb-4 grow">
                     {course.shortDescription || course.description}
                   </p>
 

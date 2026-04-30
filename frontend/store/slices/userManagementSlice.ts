@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
-import type { Course, Enrollment, PaginatedMeta } from "@/types/course";
+import type { Course, Enrollment } from "@/types/course";
+import type { PaginatedMeta } from "@/types/api";
 import type { ManagedUser } from "@/types/user-management";
 import {
   bulkActivateUsers,
@@ -80,19 +81,19 @@ const userManagementSlice = createSlice({
       })
       .addCase(updateUser.fulfilled, (state, action) => {
         state.users = state.users.map((user) =>
-          user.id === action.payload.id ? { ...user, ...action.payload } : user,
+          user._id === action.payload._id ? { ...user, ...action.payload } : user,
         );
 
-        if (state.selectedUser?.id === action.payload.id) {
+        if (state.selectedUser?._id === action.payload._id) {
           state.selectedUser = { ...state.selectedUser, ...action.payload };
         }
       })
       .addCase(deactivateUser.fulfilled, (state, action) => {
         state.users = state.users.map((user) =>
-          user.id === action.payload ? { ...user, isActive: false } : user,
+          user._id === action.payload ? { ...user, isActive: false } : user,
         );
 
-        if (state.selectedUser?.id === action.payload) {
+        if (state.selectedUser?._id === action.payload) {
           state.selectedUser = { ...state.selectedUser, isActive: false };
         }
       })
@@ -129,9 +130,9 @@ const userManagementSlice = createSlice({
       .addMatcher(
         (action) =>
           action.type.startsWith("users/") && action.type.endsWith("/rejected"),
-        (state, action) => {
+        (state, action: import("@reduxjs/toolkit").PayloadAction<string>) => {
           state.status = "failed";
-          state.error = (action.payload as string) || "Request failed";
+          state.error = action.payload || "Request failed";
         },
       );
   },

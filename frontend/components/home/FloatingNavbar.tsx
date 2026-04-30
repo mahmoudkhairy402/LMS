@@ -7,15 +7,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, LogOut, Menu, Settings, X } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { logoutUser } from "@/store/thunks/authThunks";
+import { NavLinksByRole } from "@/types/ui";
 
-type Role = "admin" | "instructor" | "student";
-
-function isInDashboard() {
-  const pathname = usePathname();
-  return pathname.includes("/dashboard");
-}
-
-const navLinksByRole: Record<Role, { href: string; label: string }[]> = {
+const navLinksByRole: NavLinksByRole = {
   admin: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/dashboard/users", label: "Users" },
@@ -48,7 +42,7 @@ export default function FloatingNavbar() {
 
   const navLinks =
     user?.role && user.role in navLinksByRole
-      ? navLinksByRole[user.role as Role]
+      ? navLinksByRole[user.role]
       : guestLinks;
 
   const handleLogout = async () => {
@@ -58,7 +52,10 @@ export default function FloatingNavbar() {
     router.replace("/login");
   };
 
-
+function isInDashboard() {
+  const pathname = usePathname();
+  return pathname.includes("/dashboard");
+}
 
   return (
     <>

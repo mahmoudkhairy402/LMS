@@ -4,8 +4,8 @@ import type {
   Course,
   Enrollment,
   InstructorStudent,
-  PaginatedMeta,
 } from "@/types/course";
+import  { PaginatedMeta } from "@/types/api";
 import {
   createCourse,
   deleteCourse,
@@ -198,9 +198,9 @@ const courseSlice = createSlice({
       .addMatcher(
         (action) =>
           action.type.startsWith("courses/") && action.type.endsWith("/rejected"),
-        (state, action) => {
+        (state, action: PayloadAction<string>) => {
           state.status = "failed";
-          state.error = (action.payload as string) || "Request failed";
+          state.error = action.payload || "Request failed";
         },
       );
   },

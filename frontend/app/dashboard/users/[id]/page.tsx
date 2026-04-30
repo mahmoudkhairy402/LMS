@@ -12,8 +12,8 @@ import {
   getUserCourses,
   updateUser,
   deactivateUser,
-  clearSelectedUser,
 } from "@/store/thunks/userThunks";
+import { clearSelectedUser } from "@/store/slices/userManagementSlice";
 import { DataTable, type Column } from "@/components/ui/DataTable";
 import type { Course, Enrollment } from "@/types/course";
 
@@ -161,7 +161,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             <div className="flex justify-between py-2 border-b border-surface-200 dark:border-surface-700">
               <span className="text-surface-500">Joined</span>
               <span className="font-medium text-surface-900 dark:text-white">
-                {new Date(selectedUser.createdAt).toLocaleDateString()}
+                {selectedUser.createdAt ? new Date(selectedUser.createdAt).toLocaleDateString() : "—"}
               </span>
             </div>
             <div className="flex justify-between py-2">

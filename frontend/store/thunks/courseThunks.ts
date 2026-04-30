@@ -290,7 +290,7 @@ export const getClassmates = createAsyncThunk<
 
 export const getInstructorStudents = createAsyncThunk<
   { students: InstructorStudent[]; meta: PaginatedMeta },
-  { page?: number; limit?: number; courseId?: string; enrollmentStatus?: string } | undefined,
+  { page?: number; limit?: number; courseId?: string; enrollmentStatus?: string; search?: string } | undefined,
   { state: RootState; rejectValue: RejectValue }
 >("courses/getInstructorStudents", async (query = {}, { getState, rejectWithValue }) => {
   try {

@@ -13,11 +13,14 @@ import {
   X,
 } from "lucide-react";
 import type { User } from "@/types/user";
+
+
 import { cn } from "@/lib/utils";
+import { NavLinksByRole } from "@/types/ui";
 
 type Role = "admin" | "instructor" | "student";
 
-const navLinksByRole: Record<Role, { href: string; label: string; icon: React.ElementType }> = {
+const navLinksByRole: NavLinksByRole = {
   admin: [
     { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     { href: "/dashboard/users", label: "Users", icon: Users },
@@ -51,7 +54,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const navLinks = navLinksByRole[user?.role as Role] || [];
 
-  const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon: React.ElementType }) => (
+  const NavLink = ({ href, label, icon: Icon }: { href: string; label: string; icon?: React.ElementType }) => (
     <Link
       href={href}
       className={cn(
@@ -63,7 +66,7 @@ export default function Sidebar({
       )}
       onClick={() => setIsOpen(false)}
     >
-      <Icon className="h-5 w-5" />
+      {Icon && <Icon className="h-5 w-5" />}
       <span className={cn({ "hidden": isCollapsed })}>{label}</span>
     </Link>
   );

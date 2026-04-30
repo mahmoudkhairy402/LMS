@@ -12,8 +12,8 @@ import type {
   UserEnrollmentsResponse,
   UserListResponse,
 } from "@/types/user-management";
-import type { Course, Enrollment, PaginatedMeta } from "@/types/course";
-
+import type { Course, Enrollment } from "@/types/course";
+import type { PaginatedMeta } from "@/types/api";
 type RejectValue = string;
 
 interface UsersApiResponse {

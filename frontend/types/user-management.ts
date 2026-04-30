@@ -1,5 +1,5 @@
-import type { Enrollment, PaginatedMeta, Course } from "@/types/course";
-
+import type { Enrollment, Course } from "@/types/course";
+import {PaginatedMeta} from "@/types/api";
 export interface ManagedUser {
   _id?: string;
   id: string;

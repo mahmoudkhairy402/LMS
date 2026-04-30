@@ -12,11 +12,12 @@ import type { Course } from "@/types/course";
 export default function UserCoursesPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const userId = resolvedParams.id;
-  
+
   const dispatch = useAppDispatch();
-  const { selectedUser, selectedUserCourses, coursesMeta, status } = useAppSelector(
+  const { selectedUser, selectedUserCourses, selectedUserCoursesMeta, status } = useAppSelector(
     (state) => state.userManagement
   );
+
 
   const [page, setPage] = useState(1);
 
@@ -62,7 +63,7 @@ export default function UserCoursesPage({ params }: { params: Promise<{ id: stri
           </span>
           <span className="flex items-center text-yellow-500">
             <Star className="w-3 h-3 mr-1" />
-            {course.averageRating ? course.averageRating.toFixed(1) : "New"}
+            {course.ratingsAverage ? course.ratingsAverage.toFixed(1) : "New"}
           </span>
         </div>
       ),
@@ -72,11 +73,10 @@ export default function UserCoursesPage({ params }: { params: Promise<{ id: stri
       accessorKey: "isPublished",
       cell: (course) => (
         <span
-          className={`inline-flex items-center px-2 py-1 text-xs font-medium border uppercase tracking-wider ${
-            course.isPublished
-              ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400"
-              : "bg-surface-500/10 text-surface-600 border-surface-500/20 dark:text-surface-400"
-          }`}
+          className={`inline-flex items-center px-2 py-1 text-xs font-medium border uppercase tracking-wider ${course.isPublished
+            ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400"
+            : "bg-surface-500/10 text-surface-600 border-surface-500/20 dark:text-surface-400"
+            }`}
         >
           {course.isPublished ? "Published" : "Draft"}
         </span>
@@ -128,11 +128,11 @@ export default function UserCoursesPage({ params }: { params: Promise<{ id: stri
               isLoading={status === "loading"}
               onRowClick={(course) => window.open(`/courses/${course._id}`, "_blank")}
             />
-            
-            {coursesMeta && coursesMeta.totalPages > 1 && (
+
+            {selectedUserCoursesMeta && selectedUserCoursesMeta.totalPages > 1 && (
               <Pagination
-                currentPage={coursesMeta.page}
-                totalPages={coursesMeta.totalPages}
+                currentPage={selectedUserCoursesMeta.page}
+                totalPages={selectedUserCoursesMeta.totalPages}
                 onPageChange={(p) => setPage(p)}
               />
             )}

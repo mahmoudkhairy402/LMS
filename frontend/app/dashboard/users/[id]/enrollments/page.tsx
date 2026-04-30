@@ -12,9 +12,9 @@ import type { Enrollment } from "@/types/course";
 export default function UserEnrollmentsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const userId = resolvedParams.id;
-  
+
   const dispatch = useAppDispatch();
-  const { selectedUser, selectedUserEnrollments, enrollmentsMeta, status } = useAppSelector(
+  const { selectedUser, selectedUserEnrollments, selectedUserEnrollmentsMeta, status } = useAppSelector(
     (state) => state.userManagement
   );
 
@@ -64,11 +64,10 @@ export default function UserEnrollmentsPage({ params }: { params: Promise<{ id: 
       accessorKey: "status",
       cell: (enrollment) => (
         <span
-          className={`inline-flex items-center px-2 py-1 text-xs font-medium border uppercase tracking-wider ${
-            enrollment.status === "completed" || enrollment.progressPercent === 100
+          className={`inline-flex items-center px-2 py-1 text-xs font-medium border uppercase tracking-wider ${enrollment.status === "completed" || enrollment.progressPercent === 100
               ? "bg-green-500/10 text-green-600 border-green-500/20 dark:text-green-400"
               : "bg-blue-500/10 text-blue-600 border-blue-500/20 dark:text-blue-400"
-          }`}
+            }`}
         >
           {enrollment.status === "completed" || enrollment.progressPercent === 100 ? "Completed" : "Active"}
         </span>
@@ -119,11 +118,11 @@ export default function UserEnrollmentsPage({ params }: { params: Promise<{ id: 
               keyExtractor={(e) => e._id}
               isLoading={status === "loading"}
             />
-            
-            {enrollmentsMeta && enrollmentsMeta.totalPages > 1 && (
+
+            {selectedUserEnrollmentsMeta && selectedUserEnrollmentsMeta.totalPages > 1 && (
               <Pagination
-                currentPage={enrollmentsMeta.page}
-                totalPages={enrollmentsMeta.totalPages}
+                currentPage={selectedUserEnrollmentsMeta.page}
+                totalPages={selectedUserEnrollmentsMeta.totalPages}
                 onPageChange={(p) => setPage(p)}
               />
             )}

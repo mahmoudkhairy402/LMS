@@ -106,7 +106,9 @@ export default function UsersManagementPage() {
             <p className="font-bold text-surface-900 dark:text-white flex items-center gap-2">
               {user.name}
               {!user.isEmailVerified && (
-                <AlertCircle className="w-3 h-3 text-yellow-500" title="Email not verified" />
+                <span title="Email not verified">
+                  <AlertCircle className="w-3 h-3 text-yellow-500" />
+                </span>
               )}
             </p>
             <p className="text-xs text-surface-500">{user.email}</p>

@@ -2,6 +2,7 @@ export type UserRole = "student" | "instructor" | "admin";
 
 export interface AuthUser {
   id: string;
+  _id: string;
   name: string;
   email: string;
   avatar: string | null;
