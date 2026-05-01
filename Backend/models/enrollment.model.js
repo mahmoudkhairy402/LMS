@@ -51,7 +51,7 @@ enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
 enrollmentSchema.index({ course: 1, status: 1 });
 
 // Auto-update completion status when progress reaches 100%
-enrollmentSchema.pre("save", function updateCompletion(next) {
+enrollmentSchema.pre("save", function updateCompletion() {
   if (this.progressPercent >= 100 && this.status !== "completed") {
     this.status = "completed";
     this.completedAt = new Date();
@@ -61,7 +61,7 @@ enrollmentSchema.pre("save", function updateCompletion(next) {
     this.completedAt = null;
   }
 
-  next();
+
 });
 
 // Update user stats after saving enrollment
