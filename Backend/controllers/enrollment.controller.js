@@ -57,6 +57,32 @@ const enrollInCourse = asyncHandler(async (req, res) => {
   });
 });
 
+const checkCourseEnrollment = asyncHandler(async (req, res) => {
+  const { id: courseId } = req.params;
+
+  const course = await Course.findById(courseId).select(
+    "_id instructor isPublished",
+  );
+  if (!course) {
+    throw new AppError("Course not found", 404);
+  }
+
+  if (!course.isPublished) {
+    throw new AppError("Forbidden", 403);
+  }
+
+  const enrollment = await Enrollment.findOne({
+    student: req.user._id,
+    course: course._id,
+  }).select("_id");
+
+  return res.status(200).json({
+    success: true,
+    isEnrolled: Boolean(enrollment),
+    canViewFullCourse: Boolean(enrollment),
+  });
+});
+
 //!get enrollment of course as a student
 const getMyEnrollments = asyncHandler(async (req, res) => {
   const enrollments = await Enrollment.find({
@@ -147,6 +173,7 @@ const updateMyProgress = asyncHandler(async (req, res) => {
 
 module.exports = {
   enrollInCourse,
+  checkCourseEnrollment,
   getMyEnrollments,
   getCourseEnrollments,
   updateMyProgress,

@@ -1,4 +1,5 @@
 const Course = require("../models/course.model");
+const Enrollment = require("../models/enrollment.model");
 const User = require("../models/user.model");
 const AppError = require("../utils/appError");
 const asyncHandler = require("../utils/asyncHandler");
@@ -109,6 +110,38 @@ const getCourseById = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
   const course = await Course.findById(id)
+    .populate("instructor", "name email avatar role stats");
+
+  if (!course) {
+    throw new AppError("Course not found", 404);
+  }
+
+  if (!course.isPublished && !canManageCourse(req.user, course)) {
+    throw new AppError("Forbidden", 403);
+  }
+
+  if (!canManageCourse(req.user, course)) {
+    const enrollment = await Enrollment.findOne({
+      student: req.user._id,
+      course: course._id,
+    }).select("_id");
+
+    if (!enrollment) {
+      throw new AppError("Forbidden", 403);
+    }
+  }
+
+  return res.status(200).json({
+    success: true,
+    course,
+  });
+});
+
+const getCourseMetadataById = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const course = await Course.findById(id)
+    .select(COURSE_METADATA_SELECT)
     .populate("instructor", "name email avatar role stats");
 
   if (!course) {
@@ -244,6 +277,7 @@ module.exports = {
   getCourses,
   getMyCourses,
   getCourseById,
+  getCourseMetadataById,
   publishCourse,
   unpublishCourse,
   updateCourse,

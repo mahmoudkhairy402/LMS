@@ -518,6 +518,31 @@
       "name": "Users (Admin)",
       "item": [
         {
+          "name": "Get All Instructors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/users/instructors?search=instructor_name",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "instructors"
+              ],
+              "query": [
+                {
+                  "key": "search",
+                  "value": "instructor_name"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
           "name": "Get All Users",
           "request": {
             "method": "GET",

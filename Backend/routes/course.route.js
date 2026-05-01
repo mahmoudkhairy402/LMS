@@ -5,6 +5,7 @@ const {
   getCourses,
   getMyCourses,
   getCourseById,
+  getCourseMetadataById,
   publishCourse,
   unpublishCourse,
   updateCourse,
@@ -12,6 +13,7 @@ const {
 } = require("../controllers/course.controller");
 const {
   enrollInCourse,
+  checkCourseEnrollment,
   getMyEnrollments,
   getCourseEnrollments,
   updateMyProgress,
@@ -96,7 +98,23 @@ router.patch(
   updateMyProgress,
 );
 
-router.get("/:id", getCourseById);
+router.get(
+  "/:id/enrollment/check",
+  protect,
+  authorize(ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN),
+  requireActiveAccount,
+  checkCourseEnrollment,
+);
+
+router.get("/:id/meta", getCourseMetadataById);
+
+router.get(
+  "/:id",
+  protect,
+  authorize(ROLES.STUDENT, ROLES.INSTRUCTOR, ROLES.ADMIN),
+  requireActiveAccount,
+  getCourseById,
+);
 
 router.patch(
   "/:id/publish",
