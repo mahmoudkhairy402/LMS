@@ -14,6 +14,12 @@ const enrollmentSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    payment: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payment",
+      default: null,
+      index: true,
+    },
     status: {
       type: String,
       enum: ["active", "completed", "cancelled"],
@@ -48,6 +54,7 @@ const enrollmentSchema = new mongoose.Schema(
 );
 
 enrollmentSchema.index({ student: 1, course: 1 }, { unique: true });
+enrollmentSchema.index({ payment: 1 }, { unique: true, sparse: true });
 enrollmentSchema.index({ course: 1, status: 1 });
 
 // Auto-update completion status when progress reaches 100%
@@ -60,8 +67,6 @@ enrollmentSchema.pre("save", function updateCompletion() {
   if (this.status !== "completed") {
     this.completedAt = null;
   }
-
-
 });
 
 // Update user stats after saving enrollment

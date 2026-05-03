@@ -21,88 +21,9 @@
         ]
       }
     },
-            }
-          ]
-        },
-        {
-          "name": "Payments",
-          "item": [
-            {
-              "name": "Create Payment Intent (Protected)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"courseId\": \"{{course_id}}\"\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/payments/create-intent",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "payments", "create-intent"]
-                },
-                "description": "Create a Stripe PaymentIntent for course purchase. Returns clientSecret for frontend payment confirmation."
-              }
-            },
-            {
-              "name": "Confirm Payment (Protected)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"paymentIntentId\": \"pi_xxxx\"\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/payments/confirm",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "payments", "confirm"]
-                },
-                "description": "Confirm payment completion and create enrollment. Call this after Stripe confirms the payment."
-              }
-            },
-            {
-              "name": "Get Payment Status (Protected)",
-              "request": {
-                "method": "GET",
-                "header": [
-                  { "key": "Authorization", "value": "Bearer {{access_token}}" }
-                ],
-                "url": {
-                  "raw": "{{base_url}}/api/payments/get-status/pi_xxxx",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "payments", "get-status", "pi_xxxx"]
-                },
-                "description": "Check the status of a payment. Returns status and enrollment details if successful."
-              }
-            },
-            {
-              "name": "Stripe Webhook (Unprotected)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  { "key": "Content-Type", "value": "application/json" }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"id\": \"evt_xxxx\",\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_xxxx\",\n      \"status\": \"succeeded\"\n    }\n  }\n}"
-                },
-                "url": {
-                  "raw": "{{base_url}}/api/webhooks/stripe",
-                  "host": ["{{base_url}}"],
-                  "path": ["api", "webhooks", "stripe"]
-                },
-                "description": "Stripe webhook endpoint. Stripe sends payment events here. Must verify Stripe signature before processing."
-              }
-            }
-          ]
-        }
+    {
+      "listen": "test",
+      "script": {
         "type": "text/javascript",
         "exec": [
           "const requestName = (pm.info.requestName || '').toLowerCase();",
@@ -836,6 +757,85 @@
           }
         }
       ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Create Payment Intent (Protected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"courseId\": \"{{course_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/create-intent",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "create-intent"]
+            },
+            "description": "Create a Stripe PaymentIntent for course purchase. Returns clientSecret for frontend payment confirmation."
+          }
+        },
+        {
+          "name": "Confirm Payment (Protected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentIntentId\": \"{{payment_intent_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/payments/confirm",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "confirm"]
+            },
+            "description": "Confirm payment completion and create enrollment after Stripe reports success."
+          }
+        },
+        {
+          "name": "Get Payment Status (Protected)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/payments/get-status/{{payment_intent_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "payments", "get-status", "{{payment_intent_id}}"]
+            },
+            "description": "Check the status of a payment and linked enrollment details if available."
+          }
+        },
+        {
+          "name": "Stripe Webhook (Unprotected)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"evt_xxxx\",\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"{{payment_intent_id}}\",\n      \"status\": \"succeeded\"\n    }\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/webhooks/stripe",
+              "host": ["{{base_url}}"],
+              "path": ["api", "webhooks", "stripe"]
+            },
+            "description": "Stripe sends live events to this endpoint; local testing should use Stripe CLI forwarding."
+          }
+        }
+      ]
     }
   ],
   "variable": [
@@ -888,11 +888,11 @@
       "key": "lesson_id_2",
       "value": "",
       "type": "string"
+    },
+    {
+      "key": "payment_intent_id",
+      "value": "",
+      "type": "string"
     }
-      {
-        "key": "payment_intent_id",
-        "value": "",
-        "type": "string"
-      }
   ]
 }

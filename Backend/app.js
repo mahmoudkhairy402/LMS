@@ -11,6 +11,8 @@ const healthRoutes = require("./routes/health.route");
 const authRoutes = require("./routes/auth.route");
 const courseRoutes = require("./routes/course.route");
 const userRoutes = require("./routes/user.route");
+const paymentRoutes = require("./routes/payment.route");
+const paymentController = require("./controllers/payment.controller");
 const notFound = require("./middlewares/notFound.middleware");
 const errorHandler = require("./middlewares/errorHandler.middleware");
 
@@ -31,6 +33,14 @@ app.use(
   }),
 );
 app.use(cors(corsOptions));
+
+// Stripe webhook endpoint requires raw body; register raw handler before JSON parser
+app.post(
+  "/api/webhooks/stripe",
+  express.raw({ type: "application/json" }),
+  paymentController.handleStripeWebhook,
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -48,6 +58,7 @@ app.use("/api/health", healthRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

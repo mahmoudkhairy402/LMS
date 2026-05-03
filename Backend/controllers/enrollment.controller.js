@@ -30,6 +30,13 @@ const enrollInCourse = asyncHandler(async (req, res) => {
     throw new AppError("Course is not published yet", 400);
   }
 
+  if (course.price > 0) {
+    throw new AppError(
+      "This course requires payment. Please complete checkout first.",
+      402,
+    );
+  }
+
   const existingEnrollment = await Enrollment.findOne({
     student: req.user._id,
     course: course._id,
