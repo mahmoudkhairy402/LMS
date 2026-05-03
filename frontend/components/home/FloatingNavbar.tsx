@@ -13,14 +13,17 @@ const navLinksByRole: NavLinksByRole = {
   admin: [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/dashboard/users", label: "Users" },
+    { href: "/courses", label: "Explore Courses" },
   ],
   instructor: [
     { href: "/dashboard", label: "Dashboard" },
+    { href: "/courses", label: "Explore Courses" },
     { href: "/dashboard/my-courses", label: "My Courses" },
     { href: "/dashboard/my-students", label: "My Students" },
     { href: "/courses", label: "All Courses" },
   ],
   student: [
+    { href: "/dashboard", label: "Dashboard" },
     { href: "/dashboard/enrollments", label: "My Enrollments" },
     { href: "/courses", label: "Explore Courses" },
     { href: "/instructors", label: "Instructors" },

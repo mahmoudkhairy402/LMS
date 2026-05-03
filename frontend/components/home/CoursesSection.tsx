@@ -10,6 +10,7 @@ type CoursesSectionProps = {
 export default function CoursesSection({
   courses = [],
 }: CoursesSectionProps) {
+  console.log("🚀 ~ CoursesSection ~ courses:", courses)
   return (
     <section id="courses" className="mt-16 scroll-mt-28">
       <SectionTitle

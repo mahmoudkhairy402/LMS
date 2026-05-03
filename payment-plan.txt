@@ -1,0 +1,159 @@
+LMS Stripe Payment Integration Plan
+
+1) What we built so far
+
+Backend flow:
+- Added a Payment model to store Stripe payment records.
+- Added a Stripe helper utility.
+- Added payment controller endpoints for payment intent creation, confirmation, payment status, and webhook handling.
+- Added payment routes and mounted them in the Express app.
+- Linked payment success to enrollment creation.
+- Blocked manual enrollment for paid courses so checkout is required.
+
+Frontend flow:
+- Installed Stripe client packages.
+- Added API service methods for payment creation, confirmation, and status.
+- Added a dedicated enroll checkout page.
+- Added a Stripe checkout form component.
+- Updated course detail call-to-action links to point to the checkout route.
+
+2) Files created
+
+Backend:
+- Backend/models/payment.model.js
+- Backend/utils/stripe.js
+- Backend/controllers/payment.controller.js
+- Backend/routes/payment.route.js
+
+Frontend:
+- frontend/components/enrollment/StripeCheckoutForm.tsx
+- frontend/app/courses/[id]/enroll/page.tsx
+
+3) Files updated
+
+Backend:
+- Backend/app.js
+- Backend/models/enrollment.model.js
+- Backend/controllers/enrollment.controller.js
+- Backend/postman/LMS-Backend.postman_collection.json
+- Backend/README.md
+
+Frontend:
+- frontend/lib/apiService.ts
+- frontend/app/courses/[id]/page.tsx
+
+4) Backend implementation steps
+
+Step 1:
+- Create a Payment model that stores student, course, amount, currency, status, Stripe PaymentIntent ID, receipt URL, and metadata.
+
+Step 2:
+- Create a Stripe helper that exports the Stripe SDK instance using STRIPE_SECRET_KEY.
+
+Step 3:
+- Add payment controller actions:
+  - createPaymentIntent
+  - confirmPayment
+  - getPaymentStatus
+  - handleStripeWebhook
+
+Step 4:
+- Add payment routes:
+  - POST /api/payments/create-intent
+  - POST /api/payments/confirm
+  - GET /api/payments/get-status/:paymentIntentId
+
+Step 5:
+- Mount the webhook endpoint in app.js using raw body parsing before express.json.
+
+Step 6:
+- On successful payment, create or attach the enrollment record and increment course enrolledCount.
+
+Step 7:
+- Prevent direct enrollment for paid courses so checkout is the only path for payment-based access.
+
+5) Frontend implementation steps
+
+Step 1:
+- Add Stripe client packages.
+
+Step 2:
+- Add API service methods:
+  - createPaymentIntent
+  - confirmPayment
+  - getPaymentStatus
+
+Step 3:
+- Add /courses/[id]/enroll page.
+
+Step 4:
+- Add StripeCheckoutForm with CardElement.
+
+Step 5:
+- Use the checkout flow:
+  - create payment intent
+  - confirm card payment
+  - confirm backend payment
+  - redirect user to the course page
+
+Step 6:
+- Update course page buttons to link to /courses/[id]/enroll.
+
+6) Postman updates
+
+Added:
+- Get Course Enrollment Check
+- Get Course Metadata
+- Create Payment Intent
+- Confirm Payment
+- Get Payment Status
+- Stripe Webhook request
+
+7) Validation status
+
+Completed:
+- Frontend touched files passed error checks.
+- Backend touched files passed error checks earlier.
+
+Not fully verified yet:
+- Live Stripe webhook forwarding.
+- End-to-end payment confirmation with a real test card.
+- Runtime smoke test if the dev server still has issues.
+
+8) Environment variables needed
+
+Backend:
+- STRIPE_SECRET_KEY
+- STRIPE_WEBHOOK_SECRET
+- STRIPE_PUBLISHABLE_KEY
+
+Frontend:
+- NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+9) Future steps to finish the plan
+
+Priority 1:
+- Verify the backend and frontend dev servers start cleanly.
+
+Priority 2:
+- Test the Stripe checkout flow with a test card.
+
+Priority 3:
+- Use Stripe CLI to forward webhooks to local backend:
+  - stripe listen --forward-to localhost:5000/api/webhooks/stripe
+
+Priority 4:
+- Re-run Postman requests for payment intent, payment status, and webhook flow.
+
+Priority 5:
+- Add any final UX refinements:
+  - better loading states
+  - better payment error messages
+  - optional refund handling behavior
+  - optional free-course checkout branch
+
+10) Recommended next action
+
+- Start by running the frontend and backend dev servers.
+- If either fails, fix the exact runtime error first.
+- Then test the full payment path end to end.

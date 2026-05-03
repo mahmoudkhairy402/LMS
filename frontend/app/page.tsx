@@ -5,14 +5,23 @@ import InstructorsSection from "@/components/home/InstructorsSection";
 import CoursesSection from "@/components/home/CoursesSection";
 import ExperienceSection from "@/components/home/ExperienceSection";
 import YourCoursesSection from "@/components/home/YourCoursesSection";
-import { getLandingPageData } from "@/lib/home-data";
-
+import {
+  fetchPublicCourses,
+  fetchInstructors,
+  fetchMyEnrollments,
+} from "@/lib/apiService";
 
 export default async function Home() {
-  const cookieStore = await  cookies();
+  const cookieStore = await cookies();
   const accessToken = cookieStore.get("accessToken")?.value;
-  const { courses, instructors, enrollments } =
-    await getLandingPageData(accessToken);
+
+  const coursesData = await fetchPublicCourses({ limit: "6" });
+  const instructorsData = await fetchInstructors();
+  const enrollmentsData = await fetchMyEnrollments(accessToken||"");
+
+  const courses = coursesData?.courses ?? [];
+  const instructors = instructorsData?.instructors ?? [];
+  const enrollments = enrollmentsData?.enrollments ?? [];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -21,9 +30,9 @@ export default async function Home() {
       <main className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-6 md:px-8">
        
         <HeroSection />
-        <YourCoursesSection
+        {/* <YourCoursesSection
           enrollments={enrollments}
-        />
+        /> */}
         <InstructorsSection instructors={instructors} />
         <CoursesSection courses={courses} />
         <ExperienceSection />

@@ -38,7 +38,7 @@ export default function EnrollmentCard({ enrollment }: Props) {
 
   return (
     <Link
-      href={`/enrollments/${_id}`}
+      href={`/dashboard/enrollments/${_id}`}
       className="group flex w-full max-w-sm flex-col overflow-hidden rounded-lg border-2 border-border bg-surface shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-primary-500/20"
     >
       {/* Thumbnail */}

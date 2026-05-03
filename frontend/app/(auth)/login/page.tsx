@@ -47,7 +47,7 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
-  console.log("🚀 ~ LoginPage ~ user:", user)
+
   useEffect(() => {
     if (user && user.role === "student") {
       router.push("/");

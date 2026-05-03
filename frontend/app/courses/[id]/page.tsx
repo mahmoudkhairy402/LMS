@@ -1,8 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, BadgeCheck, BookOpen, Clock3, Star, Users } from "lucide-react";
-import api from "@/lib/api";
-import type { CourseResponse } from "@/types/course";
+import { cookies } from "next/headers";
+import {
+  checkCourseEnrollment,
+  fetchCourseById,
+  fetchCourseMetadataById,
+} from "@/lib/apiService";
 
 function formatPrice(price?: number) {
   if (typeof price !== "number") return "Free";
@@ -19,17 +23,25 @@ function formatDuration(minutes?: number) {
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
 }
 
-export default async function CourseDetailsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
+export default async function CourseDetailsPage(props: {
+  params: { id: string };
 }) {
-  const { id } = await params;
+  const params = await props.params;
+  const { id } = params;
+
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken")?.value ?? "";
+
+  const enrollmentState = accessToken
+    ? await checkCourseEnrollment(id, accessToken)
+    : { isEnrolled: false, canViewFullCourse: false };
+
+  const course = enrollmentState.canViewFullCourse
+    ? await fetchCourseById(id, accessToken)
+    : await fetchCourseMetadataById(id);
+
 
   try {
-    const response = await api.get<CourseResponse>(`/api/courses/${id}`);
-    const course = response.data.course;
-
     if (!course) {
       notFound();
     }
@@ -38,6 +50,8 @@ export default async function CourseDetailsPage({
       <main className="min-h-screen bg-background px-6 py-8 text-foreground md:px-8">
         <div className="mx-auto max-w-6xl">
           <div className="mb-6 border-2 border-border bg-surface/90 p-4 shadow-(--shadow-soft)">
+          
+              
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
               <Link
                 href="/"
@@ -49,23 +63,37 @@ export default async function CourseDetailsPage({
 
               <div className="flex items-center gap-3">
                 <Link
-                  href={`/login?redirect=/courses/${id}`}
+                  href={`/courses/${id}/enroll`}
                   className="inline-flex items-center justify-center border-2 border-border px-4 py-2 text-sm font-bold uppercase tracking-wide text-foreground transition hover:border-primary-500/70"
                 >
-                  Login
+                  Explore enrollment
                 </Link>
                 <Link
-                  href={`/login?redirect=/courses/${id}`}
+                  href={`/courses/${id}/enroll`}
                   className="inline-flex items-center justify-center border-2 border-primary-500 bg-primary-500 px-4 py-2 text-sm font-bold uppercase tracking-wide text-white transition hover:bg-primary-600"
                 >
                   Enroll Now
                 </Link>
               </div>
             </div>
+
+             
+          
           </div>
 
           <div className="grid gap-8 lg:grid-cols-[1.25fr_0.75fr]">
             <section className="overflow-hidden border-2 border-border bg-surface/90 shadow-(--shadow-soft)">
+              {!enrollmentState.canViewFullCourse ? (
+                <div className="border-b-2 border-border bg-primary-500/10 p-4">
+                  <p className="text-sm font-black uppercase tracking-[0.22em] text-primary-200">
+                    Preview mode
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    You are viewing a public preview. Enroll to unlock sections and lessons.
+                  </p>
+                </div>
+              ) : null}
+
               <div className="relative aspect-16/8 border-b-2 border-border bg-surface-raised">
                 {course.thumbnail ? (
                   <img
@@ -147,7 +175,7 @@ export default async function CourseDetailsPage({
                 ) : null}
 
                 {/* Curriculum Section */}
-                {course.sections && course.sections.length > 0 && (
+                {enrollmentState.canViewFullCourse && course.sections && course.sections.length > 0 && (
                   <div className="mt-12">
                     <h2 className="text-2xl font-black uppercase tracking-wide mb-6 border-b-2 border-border pb-2">
                       Course Curriculum
@@ -241,6 +269,21 @@ export default async function CourseDetailsPage({
                   </div>
                 </dl>
               </div>
+
+              {!enrollmentState.canViewFullCourse ? (
+                <div className="border-2 border-primary-500 bg-primary-500/10 p-6 shadow-(--shadow-soft)">
+                  <p className="text-xs font-black uppercase tracking-[0.28em] text-primary-200">Unlock course</p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    Enroll to access the full curriculum, lessons, and progress tracking.
+                  </p>
+                  <Link
+                    href={`/courses/${id}/enroll`}
+                    className="mt-5 inline-flex w-full items-center justify-center border-2 border-primary-500 bg-primary-500 px-4 py-3 text-sm font-black uppercase tracking-wide text-white transition hover:bg-primary-600"
+                  >
+                    Go to enrollment page
+                  </Link>
+                </div>
+              ) : null}
             </aside>
           </div>
         </div>

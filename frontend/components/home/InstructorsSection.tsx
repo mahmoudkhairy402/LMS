@@ -1,17 +1,18 @@
 import Marquee from "@/components/home/Marquee";
 import InstructorCard from "@/components/home/InstructorCard";
 import SectionTitle from "@/components/home/SectionTitle";
-import type { HomeInstructor } from "@/types/home";
+import { Instructor } from "@/types/user";
 
 type InstructorsSectionProps = {
-  instructors?: HomeInstructor[];
+  instructors?: Instructor[];
 };
 
-const fallbackInstructors: HomeInstructor[] = [];
+const fallbackInstructors: Instructor[] = [];
 
 export default function InstructorsSection({
   instructors = fallbackInstructors,
 }: InstructorsSectionProps) {
+  console.log("🚀 ~ InstructorsSection ~ instructors:", instructors)
   return (
     <section id="instructors" className="mt-16 scroll-mt-28">
       <SectionTitle

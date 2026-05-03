@@ -3,6 +3,7 @@
 This backend implements a full authentication system for Node.js + Express + MongoDB and is ready to be reused as a starter in other projects.
 
 ## Tech Stack
+
 - Node.js
 - Express
 - MongoDB + Mongoose
@@ -10,8 +11,10 @@ This backend implements a full authentication system for Node.js + Express + Mon
 - Joi validation
 - Nodemailer (SMTP/Brevo)
 - Google ID token verification (`google-auth-library`)
+- Stripe payments for course checkout and enrollment
 
 ## Current Features
+
 - Register with email/password
 - Email verification by token link
 - Login blocked until email is verified
@@ -24,6 +27,7 @@ This backend implements a full authentication system for Node.js + Express + Mon
 - Centralized error handling and validation middleware
 
 ## Project Structure
+
 - `app.js`: Express app bootstrap and middleware setup
 - `config/db.js`: MongoDB connection
 - `models/user.model.js`: User schema and password hashing
@@ -38,9 +42,11 @@ This backend implements a full authentication system for Node.js + Express + Mon
 - `postman/`: Postman collection + environment
 
 ## Environment Variables
+
 Create `.env` based on `.env.example`.
 
 Required:
+
 - `PORT`
 - `NODE_ENV`
 - `CLIENT_URL`
@@ -57,22 +63,37 @@ Required:
 - `SMTP_USER`
 - `SMTP_PASS`
 - `SMTP_FROM`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_PUBLISHABLE_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+
+Stripe notes:
+
+- `STRIPE_SECRET_KEY` is used only on the backend to create payment intents and verify payment state.
+- `STRIPE_PUBLISHABLE_KEY` is the public key the frontend uses to initialize Stripe Elements.
+- `STRIPE_WEBHOOK_SECRET` is required to verify Stripe webhook signatures.
 
 ## Run Locally
+
 1. Install dependencies:
+
 ```bash
 npm install
 ```
+
 2. Configure `.env`.
 3. Start dev server:
+
 ```bash
 npm run dev
 ```
 
 ## API Endpoints
+
 Base prefix: `/api/auth`
 
 ### Public
+
 - `POST /register`
 - `GET /verify-email/:token`
 - `POST /login`
@@ -81,14 +102,17 @@ Base prefix: `/api/auth`
 - `POST /logout`
 
 ### Protected
+
 - `GET /me`
 - `PUT /avatar`
 
 Health:
+
 - `GET /api/health`
 - `GET /`
 
 ## Authentication Flow
+
 1. User registers (`/register`).
 2. Backend creates verification token and sends verification email.
 3. User clicks verify link (`/verify-email/:token`).
@@ -98,27 +122,40 @@ Health:
 7. Access token refresh via `/refresh` using refresh cookie.
 
 ## Google Auth Flow
+
 1. Frontend gets Google `idToken`.
 2. Frontend sends `idToken` to `POST /api/auth/google`.
 3. Backend verifies token with Google client id.
 4. User is created or updated, then JWT tokens are issued.
 
 ## Postman
+
 Import:
+
 - `postman/LMS-Backend.postman_collection.json`
 - `postman/LMS-Backend.postman_environment.json`
 
 Collection scripts already:
+
 - store `access_token` after login/google login
 - auto-attach `Authorization` for protected requests
 
+Stripe test flow in Postman:
+
+1. Log in and store `access_token`.
+2. Call `POST /api/payments/create-intent` with a paid `courseId`.
+3. Use the returned `paymentIntentId` in `GET /api/payments/get-status/:paymentIntentId` or `POST /api/payments/confirm`.
+4. Use Stripe CLI to forward webhook events to `POST /api/webhooks/stripe` during local testing.
+
 ## Security Notes
+
 - Never commit `.env`.
 - Rotate any leaked SMTP/API/JWT secrets.
 - Use verified sender/domain in Brevo.
 - Use HTTPS in production for secure cookies.
 
 ## Known Next Improvements
+
 - Password reset flow
 - Resend verification email endpoint
 - Rate limit customization per route

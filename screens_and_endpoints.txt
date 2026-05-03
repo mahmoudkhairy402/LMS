@@ -1,0 +1,433 @@
+### General (Public/Unauthenticated Users)
+
+---
+
+#### 1. Homepage / Public Course Catalog
+*   **User Role**: Anyone (Unauthenticated)
+*   **Description**: Displays a list of all published courses that anyone can browse.
+*   **Endpoint**: `GET /api/courses`
+    *   **Request Body**: None.
+    *   **Query Params (for filtering/pagination)**:
+        *   `page`: (number) The page number to retrieve (e.g., `1`).
+        *   `limit`: (number) The number of courses per page (e.g., `10`).
+        *   `category`: (string) Filter courses by a specific category.
+        *   `level`: (string) Filter courses by difficulty level (e.g., `Beginner`).
+        *   `instructor`: (string) Filter courses by instructor ID.
+        *   `search`: (string) Search by course title, description, or tags.
+    *   **Response**: A paginated list of published courses.
+        ```json
+        {
+          "success": true,
+          "page": 1,
+          "limit": 10,
+          "total": 50, // Total number of courses matching the filter
+          "totalPages": 5,
+          "courses": [
+            {
+              "title": "Web Development Basics",
+              "slug": "web-development-basics",
+              "shortDescription": "An introduction to web development.",
+              "thumbnail": "url/to/image.png",
+              "category": "Web Development",
+              "instructor": { "name": "John Doe", ... },
+              // ... other course metadata
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: Yes. Uses `page` and `limit` query parameters. The response includes `total`, `totalPages`, `page`, and `limit`.
+
+---
+
+### Student Role
+
+---
+
+#### 1. Register Screen
+*   **User Role**: Student (or any new user)
+*   **Description**: A form for new users to create an account.
+*   **Endpoint**: `POST /api/auth/register`
+    *   **Request Body**:
+        ```json
+        {
+          "name": "Sarah Chen",
+          "email": "sarah.chen@gmail.com",
+          "password": "securepassword123",
+          "role": "student" // Can be 'student' or 'instructor'
+        }
+        ```
+    *   **Response**: A success message indicating that a verification email has been sent.
+        ```json
+        {
+          "success": true,
+          "message": "User registered successfully. Please check your email to verify your account."
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 2. Login Screen
+*   **User Role**: Student, Instructor, Admin
+*   **Description**: A form for existing users to log in.
+*   **Endpoint**: `POST /api/auth/login`
+    *   **Request Body**:
+        ```json
+        {
+          "email": "sarah.chen@gmail.com",
+          "password": "securepassword123"
+        }
+        ```
+    *   **Response**: The user's profile information and an access token.
+        ```json
+        {
+          "success": true,
+          "message": "Logged in successfully",
+          "user": {
+            "id": "user_id",
+            "name": "Sarah Chen",
+            "email": "sarah.chen@gmail.com",
+            "role": "student"
+          },
+          "accessToken": "jwt.access.token"
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 3. Course Details Screen
+*   **User Role**: Student (and Public)
+*   **Description**: Shows detailed information about a single course, including its description, instructor, and lessons (previews for unenrolled users).
+*   **Endpoint**: `GET /api/courses/:id`
+    *   **Request Body**: None.
+    *   **Response**: The full details of the specified course.
+        ```json
+        {
+          "success": true,
+          "course": {
+            "_id": "course_id",
+            "title": "Web Development Basics",
+            "instructor": { "name": "John Doe", ... },
+            "sections": [
+              {
+                "title": "Introduction",
+                "lessons": [ { "title": "Welcome!", "isPreview": true } ]
+              }
+            ]
+            // ... other course details
+          }
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 4. My Courses / Student Dashboard
+*   **User Role**: Student
+*   **Description**: Displays all courses the student is currently enrolled in.
+*   **Endpoint**: `GET /api/enrollments/my`
+    *   **Request Body**: None.
+    *   **Response**: A list of the student's enrollments, with populated course and instructor details.
+        ```json
+        {
+          "success": true,
+          "total": 1,
+          "enrollments": [
+            {
+              "course": {
+                "title": "Web Development Basics",
+                "instructor": { "name": "John Doe", ... }
+              },
+              "progressPercent": 25,
+              "status": "active"
+              // ... other enrollment details
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 5. Course Player Screen
+*   **User Role**: Student
+*   **Description**: The main learning interface where a student watches lessons, reads articles, and updates their progress.
+*   **Endpoint**: `PUT /api/enrollments/my/:id/progress`
+    *   **Description**: This endpoint is called when a student marks a lesson as complete or their progress is otherwise updated.
+    *   **Request Body**:
+        ```json
+        {
+          "progressPercent": 30,
+          "completedLessonIds": ["lesson_id_1", "lesson_id_2"]
+        }
+        ```
+    *   **Response**: The updated enrollment object.
+        ```json
+        {
+          "success": true,
+          "message": "Progress updated successfully",
+          "enrollment": {
+            // ... updated enrollment details
+          }
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 6. Classmates Screen
+*   **User Role**: Student
+*   **Description**: Shows a list of other students enrolled in the same course.
+*   **Endpoint**: `GET /api/courses/:id/classmates`
+    *   **Request Body**: None.
+    *   **Response**: A list of student profiles for classmates in the course.
+        ```json
+        {
+          "success": true,
+          "total": 15,
+          "classmates": [
+            {
+              "studentId": "student_id_1",
+              "name": "Jane Doe",
+              "avatar": "url/to/avatar.png"
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+### Instructor Role
+
+---
+
+#### 1. Instructor Dashboard / My Created Courses
+*   **User Role**: Instructor
+*   **Description**: A dashboard for instructors to see the courses they have created.
+*   **Endpoint**: `GET /api/courses/my`
+    *   **Request Body**: None.
+    *   **Response**: A list of all courses created by the logged-in instructor.
+        ```json
+        {
+          "success": true,
+          "total": 3,
+          "courses": [
+            {
+              "_id": "course_id",
+              "title": "Advanced React Patterns",
+              "isPublished": true,
+              "enrolledCount": 150
+              // ... other course details
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 2. Create/Edit Course Screen
+*   **User Role**: Instructor
+*   **Description**: A form for creating a new course or updating an existing one.
+*   **Endpoints**:
+    *   `POST /api/courses` (for creation)
+    *   `PUT /api/courses/:id` (for updates)
+*   **Request Body** (`POST`):
+    ```json
+    {
+      "title": "Advanced React Patterns",
+      "description": "A deep dive into React.",
+      "category": "Web Development",
+      "price": 49.99
+      // ... other course fields like sections, lessons, etc.
+    }
+    ```
+*   **Request Body** (`PUT`):
+    ```json
+    {
+      "title": "Updated Course Title",
+      "price": 59.99
+      // ... any fields to update
+    }
+    ```
+*   **Response**: The created or updated course object.
+    ```json
+    {
+      "success": true,
+      "message": "Course created/updated successfully",
+      "course": {
+        // ... course object
+      }
+    }
+    ```
+*   **Pagination**: No.
+
+---
+
+#### 3. Course Student Management Screen
+*   **User Role**: Instructor
+*   **Description**: Displays a list of all students enrolled in a specific course, along with their progress.
+*   **Endpoint**: `GET /api/courses/:id/enrollments`
+    *   **Request Body**: None.
+    *   **Response**: A list of enrollments for the specified course.
+        ```json
+        {
+          "success": true,
+          "course": { "id": "course_id", "title": "Advanced React Patterns" },
+          "total": 150,
+          "enrollments": [
+            {
+              "student": { "name": "Sarah Chen", "email": "sarah.chen@gmail.com", ... },
+              "progressPercent": 100,
+              "status": "completed"
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: No.
+
+---
+
+#### 4. All My Students Screen
+*   **User Role**: Instructor
+*   **Description**: Shows all students enrolled across all of the instructor's courses.
+*   **Endpoint**: `GET /api/users/instructor/students`
+    *   **Request Body**: None.
+    *   **Query Params**:
+        *   `page`, `limit`: For pagination.
+        *   `courseId`: (string) Filter students by a specific course ID.
+        *   `enrollmentStatus`: (string) Filter by status (e.g., `active`, `completed`).
+        *   `search`: (string) Search by student name or email.
+    *   **Response**: A paginated list of students.
+        ```json
+        {
+          "success": true,
+          "page": 1,
+          "limit": 10,
+          "total": 500,
+          "totalPages": 50,
+          "students": [
+            {
+              "studentId": "student_id_1",
+              "name": "Sarah Chen",
+              "email": "sarah.chen@gmail.com",
+              "progressPercent": 100,
+              "courseName": "Advanced React Patterns"
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: Yes. Uses `page` and `limit`.
+
+---
+
+### Admin Role
+
+---
+
+#### 1. User Management Dashboard
+*   **User Role**: Admin
+*   **Description**: A table displaying all users on the platform, with tools for filtering, sorting, and performing bulk actions.
+*   **Endpoint**: `GET /api/users`
+    *   **Request Body**: None.
+    *   **Query Params**:
+        *   `page`, `limit`: For pagination.
+        *   `role`: (string) Filter by `student`, `instructor`, or `admin`.
+        *   `status`: (string) Filter by `active` or `inactive`.
+        *   `isEmailVerified`: (string) `true` or `false`.
+        *   `search`: (string) Search by user name or email.
+        *   `sortBy`: (string) Field to sort by (e.g., `createdAt`, `name`).
+        *   `sortOrder`: (string) `asc` or `desc`.
+    *   **Response**: A paginated list of all users.
+        ```json
+        {
+          "success": true,
+          "page": 1,
+          "limit": 10,
+          "total": 1200,
+          "totalPages": 120,
+          "users": [
+            {
+              "_id": "user_id",
+              "name": "Test User",
+              "email": "test@example.com",
+              "role": "student",
+              "isActive": true,
+              "enrollmentCount": 5,
+              "courseCount": 0
+            }
+          ]
+        }
+        ```
+    *   **Pagination**: Yes. Uses `page` and `limit`.
+
+---
+
+#### 2. User Detail/Edit Screen
+*   **User Role**: Admin
+*   **Description**: View and edit the details of a single user.
+*   **Endpoints**:
+    *   `GET /api/users/:id` (to fetch user data)
+    *   `PUT /api/users/:id` (to update user data)
+*   **Request Body** (`PUT`):
+    ```json
+    {
+      "name": "Updated Name",
+      "role": "instructor",
+      "isActive": false,
+      "isEmailVerified": true
+    }
+    ```
+*   **Response**: The user object.
+*   **Pagination**: No.
+
+---
+
+#### 3. User Enrollments Screen
+*   **User Role**: Admin
+*   **Description**: View all courses a specific user is enrolled in.
+*   **Endpoint**: `GET /api/users/:id/enrollments`
+    *   **Request Body**: None.
+    *   **Query Params**: `page`, `limit` for pagination.
+    *   **Response**: A paginated list of the user's enrollments.
+    *   **Pagination**: Yes.
+
+---
+
+#### 4. User Courses Screen (for Instructors)
+*   **User Role**: Admin
+*   **Description**: View all courses created by a specific user (if they are an instructor).
+*   **Endpoint**: `GET /api/users/:id/courses`
+    *   **Request Body**: None.
+    *   **Query Params**: `page`, `limit` for pagination.
+    *   **Response**: A paginated list of courses created by the user.
+    *   **Pagination**: Yes.
+
+---
+
+#### 5. Bulk Action Modals
+*   **User Role**: Admin
+*   **Description**: Modals or forms to perform bulk operations on selected users from the User Management Dashboard.
+*   **Endpoints**:
+    *   `POST /api/users/bulk/deactivate`
+    *   `POST /api/users/bulk/activate`
+    *   `POST /api/users/bulk/update-role`
+    *   `POST /api/users/bulk/delete`
+*   **Request Body** (Example for `update-role`):
+    ```json
+    {
+      "userIds": ["id1", "id2", "id3"],
+      "newRole": "instructor"
+    }
+    ```
+*   **Response**: A summary of the operation's success or failure.
+    ```json
+    {
+      "success": true,
+      "message": "3 users updated successfully",
+      "results": { "successCount": 3, "failureCount": 0 }
+    }
+    ```
+*   **Pagination**: No.

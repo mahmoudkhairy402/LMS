@@ -1,26 +1,30 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { ArrowLeft, CheckCircle2, Circle, PlayCircle, FileText, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { getCourseById, getMyEnrollments, updateMyProgress } from "@/store/thunks/courseThunks";
-import { clearSelectedCourse } from "@/store/slices/courseSlice";
 import type { Lesson } from "@/types/course";
 
 export default function CoursePlayerPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const courseId = resolvedParams.id;
 
-  const router = useRouter();
   const dispatch = useAppDispatch();
   const { selectedCourse, myEnrollments, status } = useAppSelector((state) => state.courses);
 
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
   const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
   const [isUpdating, setIsUpdating] = useState(false);
+  const [watchedSegments, setWatchedSegments] = useState<Set<number>>(new Set());
+  const [videoDuration, setVideoDuration] = useState(0);
+  const [watchProgress, setWatchProgress] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const lastRecordedTimeRef = useRef<number>(0);
+  const WATCH_THRESHOLD = 0.85; // 85% watched to auto-complete
+  const SKIP_THRESHOLD = 5; // Can't skip more than 5 seconds ahead
 
   // Load course details
   useEffect(() => {
@@ -67,9 +71,57 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
 
   const handleLessonSelect = (lesson: Lesson) => {
     setActiveLesson(lesson);
+    setWatchedSegments(new Set()); // Reset watched segments for new lesson
+    lastRecordedTimeRef.current = 0;
+    setWatchProgress(0);
   };
 
-  const handleMarkComplete = async () => {
+  const handleVideoTimeUpdate = () => {
+    if (!videoRef.current || completedLessonIds.has(activeLesson?._id || "")) return;
+    
+    const currentTime = Math.floor(videoRef.current.currentTime);
+    
+    // Record each second watched
+    if (currentTime !== lastRecordedTimeRef.current) {
+      setWatchedSegments((prev) => {
+        const updated = new Set(prev);
+        updated.add(currentTime);
+        return updated;
+      });
+      lastRecordedTimeRef.current = currentTime;
+    }
+  };
+
+  const handleVideoSeek = () => {
+    if (!videoRef.current || !activeLesson || completedLessonIds.has(activeLesson._id)) return;
+
+    const newTime = videoRef.current.currentTime;
+    const maxAllowedTime = lastRecordedTimeRef.current + SKIP_THRESHOLD;
+
+    // Prevent skipping too far ahead
+    if (newTime > maxAllowedTime) {
+      videoRef.current.currentTime = maxAllowedTime;
+    }
+  };
+
+  const handleVideoLoadedMetadata = () => {
+    if (!videoRef.current) return;
+    setVideoDuration(videoRef.current.duration);
+  };
+
+  // Auto-complete when watch threshold is reached
+  useEffect(() => {
+    if (!activeLesson || completedLessonIds.has(activeLesson._id) || !videoDuration) return;
+
+    const watchedPercentage = watchedSegments.size / Math.ceil(videoDuration);
+    setWatchProgress(Math.round(watchedPercentage * 100));
+
+    if (watchedPercentage >= WATCH_THRESHOLD && !isUpdating) {
+      autoCompleteLesson();
+    }
+  }, [watchedSegments, videoDuration, activeLesson, completedLessonIds, isUpdating]);
+
+  const autoCompleteLesson = async () => {
     if (!activeLesson || !selectedCourse || isUpdating) return;
 
     setIsUpdating(true);
@@ -94,7 +146,7 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
         })
       ).unwrap();
 
-      toast.success("Progress saved!");
+      toast.success("Lesson completed! Moving to next...");
 
       // Auto-advance to next lesson
       let foundCurrent = false;
@@ -176,14 +228,39 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
           </Link>
         </div>
 
-        {/* Video Player / Content Placeholder */}
-        <div className="bg-black aspect-video w-full relative flex items-center justify-center flex-shrink-0">
+        {/* Video Player */}
+        <div className="bg-black aspect-video w-full relative flex items-center justify-center flex-shrink-0 overflow-hidden">
           {activeLesson ? (
-            <div className="text-center">
-              <PlayCircle className="w-16 h-16 text-white/50 mx-auto mb-4" />
-              <p className="text-white/70 font-medium">Video Player Placeholder</p>
-              <p className="text-white/40 text-sm mt-2">{activeLesson.title}</p>
-            </div>
+            activeLesson.type === "video" ? (
+              activeLesson.videoUrl ? (
+                <video
+                  ref={videoRef}
+                  key={activeLesson._id}
+                  controls
+                  preload="metadata"
+                  className="w-full h-full object-contain"
+                  controlsList="nodownload"
+                  onTimeUpdate={handleVideoTimeUpdate}
+                  onSeeking={handleVideoSeek}
+                  onLoadedMetadata={handleVideoLoadedMetadata}
+                >
+                  <source src={activeLesson.videoUrl} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              ) : (
+                <div className="text-center px-6">
+                  <PlayCircle className="w-16 h-16 text-white/40 mx-auto mb-3" />
+                  <p className="text-white/80 font-semibold">No video URL for this lesson yet</p>
+                  <p className="text-white/50 text-sm mt-1">Add a valid video link in the course editor to preview it here.</p>
+                </div>
+              )
+            ) : (
+              <div className="text-center px-6">
+                <FileText className="w-16 h-16 text-white/40 mx-auto mb-3" />
+                <p className="text-white/80 font-semibold">This lesson is not a video lesson</p>
+                <p className="text-white/50 text-sm mt-1">Use the lesson content section below to read it.</p>
+              </div>
+            )
           ) : (
             <p className="text-white/50">Select a lesson to begin</p>
           )}
@@ -208,23 +285,30 @@ export default function CoursePlayerPage({ params }: { params: Promise<{ id: str
                 </div>
 
                 <button
-                  onClick={handleMarkComplete}
-                  disabled={completedLessonIds.has(activeLesson._id) || isUpdating}
-                  className={`inline-flex items-center gap-2 px-6 py-3 font-bold uppercase tracking-wider transition-all border-2 flex-shrink-0 ${completedLessonIds.has(activeLesson._id)
+                  disabled
+                  className={`inline-flex flex-col items-start gap-1 px-6 py-3 font-bold uppercase tracking-wider transition-all border-2 flex-shrink-0 ${completedLessonIds.has(activeLesson._id)
                     ? "bg-green-500/10 text-green-500 border-green-500 cursor-default"
-                    : "bg-primary-500 text-white border-primary-500 hover:bg-primary-600 hover:border-primary-600 shadow-[4px_4px_0px_0px_rgba(var(--primary-600))] hover:translate-y-[2px] hover:translate-x-[2px] hover:shadow-[2px_2px_0px_0px_rgba(var(--primary-600))]"
+                    : "bg-primary-500/10 text-primary-500 border-primary-500 cursor-default"
                     }`}
                 >
-                  {completedLessonIds.has(activeLesson._id) ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      Completed
-                    </>
-                  ) : isUpdating ? (
-                    "Saving..."
-                  ) : (
-                    "Mark Complete"
-                  )}
+                  <div className="flex items-center gap-2">
+                    {completedLessonIds.has(activeLesson._id) ? (
+                      <>
+                        <CheckCircle className="w-5 h-5" />
+                        Completed
+                      </>
+                    ) : (
+                      <>
+                        <PlayCircle className="w-5 h-5 d-block" />
+                        Watch Progress
+                         <div className="text-xs font-normal opacity-80">
+                    {watchProgress}% watched
+                  </div>
+                      </>
+                    )}
+                  </div>
+
+                 
                 </button>
               </div>
 

@@ -2,14 +2,16 @@
 
 import type { Enrollment } from "@/types/course";
 import { useAppSelector } from "@/store/hooks";
-import { GraduationCap, Link, Sparkles } from "lucide-react";
+import { GraduationCap, Sparkles } from "lucide-react";
 import EnrollmentCard from "@/components/home/EnrollmentCard"
+import Link from "next/link";
 
 type Props = {
   enrollments: Enrollment[];
 };
 
 export default function YourCoursesSection({ enrollments }: Props) {
+  console.log("🚀 ~ YourCoursesSection ~ enrollments:", enrollments)
   const { user } = useAppSelector((state) => state.auth);
 
   return (

@@ -131,3 +131,11 @@ export type InstructorStudent = {
   lastAccessedAt?: string;
   courseName?: string;
 };
+
+export type CourseFilterParams ={
+    page?: string;
+    search?: string;
+    category?: string;
+    level?: string;
+    instructor?: string
+}
